@@ -6,27 +6,27 @@
         <div class="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-pine/20 blur-3xl"></div>
         <p class="section-kicker relative">ByteCoach</p>
         <h1 class="page-title relative mt-5 max-w-xl">
-          把 Java 面试准备收敛成一条可复用、可讲解、可演示的学习闭环。
+          进入一个围绕 Java 面试准备设计的学习驾驶舱，而不是普通聊天页。
         </h1>
         <p class="page-subtitle relative mt-5">
-          阶段 1 先完成登录、问答、面试、错题、学习计划和 Dashboard 骨架。UI 保持轻量，但结构已经按后续联调节奏切好。
+          登录之后，首页会把学习概览、最近面试、错题数量、薄弱点和计划完成率放进同一个工作台，帮助你决定下一步该做什么。
         </p>
 
         <div class="relative mt-12 grid gap-4 md:grid-cols-3">
           <article class="metric-card">
             <p class="metric-label">Core Loop</p>
             <p class="metric-value">6</p>
-            <p class="mt-2 text-sm text-slate-500">登录、问答、面试、错题、计划、看板</p>
+            <p class="mt-2 text-sm text-slate-500">登录、问答、面试、错题、计划、Dashboard</p>
           </article>
           <article class="metric-card">
-            <p class="metric-label">AI Shape</p>
-            <p class="metric-value">1</p>
-            <p class="mt-2 text-sm text-slate-500">单供应商 OpenAI-compatible gateway</p>
+            <p class="metric-label">Dashboard</p>
+            <p class="metric-value">Live</p>
+            <p class="mt-2 text-sm text-slate-500">学习概览、面试结果、薄弱点与快捷入口统一呈现</p>
           </article>
           <article class="metric-card">
-            <p class="metric-label">Admin</p>
-            <p class="metric-value">/admin</p>
-            <p class="mt-2 text-sm text-slate-500">同应用内嵌，不独立拆前端</p>
+            <p class="metric-label">Auth</p>
+            <p class="metric-value">JWT</p>
+            <p class="mt-2 text-sm text-slate-500">注册、登录、恢复登录态、退出登录形成完整闭环</p>
           </article>
         </div>
       </section>
@@ -46,7 +46,7 @@
           </el-button>
         </el-form>
         <div class="mt-6 flex items-center justify-between text-sm text-slate-500">
-          <span>默认对接 `/api/auth/login`</span>
+          <span>登录后直接进入 Dashboard 总览</span>
           <RouterLink class="text-ember" to="/register">创建账号</RouterLink>
         </div>
       </section>
@@ -85,9 +85,10 @@ const handleLogin = async () => {
     await authStore.login(form)
     ElMessage.success('登录成功')
     await router.push((route.query.redirect as string) || '/dashboard')
+  } catch {
+    // Message is handled by the request interceptor.
   } finally {
     loading.value = false
   }
 }
 </script>
-

@@ -2,9 +2,9 @@
   <div class="flex min-h-screen items-center justify-center px-4 py-8">
     <section class="paper-panel w-full max-w-2xl p-8 md:p-10">
       <p class="section-kicker">Create Account</p>
-      <h1 class="mt-4 font-display text-4xl text-ink">创建一个用于演示和联调的账号</h1>
+      <h1 class="mt-4 font-display text-4xl text-ink">创建账号后，直接进入你的学习首页</h1>
       <p class="mt-4 max-w-xl text-sm leading-7 text-slate-600">
-        注册页目前只接最小字段：`username`、`password`、`nickname`。角色、头像、来源等信息在后端按默认值处理。
+        注册只保留最小字段：`username`、`password`、`nickname`。成功后会自动签发 token，并直接进入 Dashboard。
       </p>
 
       <el-form ref="formRef" :model="form" :rules="rules" class="mt-8" label-position="top" @submit.prevent>
@@ -58,11 +58,12 @@ const handleRegister = async () => {
   loading.value = true
   try {
     await authStore.register(form)
-    ElMessage.success('注册成功，请登录')
-    await router.push('/login')
+    ElMessage.success('注册成功，已自动登录')
+    await router.push('/dashboard')
+  } catch {
+    // Message is handled by the request interceptor.
   } finally {
     loading.value = false
   }
 }
 </script>
-

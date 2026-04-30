@@ -23,7 +23,8 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function register(payload: RegisterPayload) {
-    await registerApi(payload)
+    const response = await registerApi(payload)
+    persist(response.data.token, response.data.userInfo)
   }
 
   async function restoreProfile() {
@@ -42,6 +43,7 @@ export const useAuthStore = defineStore('auth', () => {
       await logoutApi()
     } finally {
       clear()
+      window.location.replace('/login')
     }
   }
 
@@ -63,4 +65,3 @@ export const useAuthStore = defineStore('auth', () => {
     clear
   }
 })
-

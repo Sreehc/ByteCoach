@@ -1,6 +1,5 @@
 package com.bytecoach.user.service.impl;
 
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bytecoach.common.api.ResultCode;
 import com.bytecoach.common.constant.SecurityConstants;
@@ -41,7 +40,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setRole(SecurityConstants.ROLE_USER);
         user.setStatus(1);
         user.setSource("system");
-        user.setLastLoginTime(LocalDateTime.now());
+        user.setLastLoginTime(null);
         save(user);
         return user;
     }
@@ -65,4 +64,3 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .build();
     }
 }
-

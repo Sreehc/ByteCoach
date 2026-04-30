@@ -15,7 +15,7 @@ export const loginApi = (payload: LoginPayload) => {
 }
 
 export const registerApi = (payload: RegisterPayload) => {
-  return request<null>({ url: '/auth/register', method: 'post', data: payload })
+  return request<LoginResponse>({ url: '/auth/register', method: 'post', data: payload })
 }
 
 export const fetchCurrentUserApi = () => {

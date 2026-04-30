@@ -30,6 +30,11 @@ body {
     linear-gradient(135deg, #f7f0e6 0%, #f3eee5 52%, #ebe6dc 100%);
 }
 
+button,
+[role='button'] {
+  cursor: pointer;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -67,3 +72,6 @@ a {
   @apply text-sm text-slate-500;
 }
 
+.empty-state-card {
+  @apply rounded-[26px] border border-dashed border-black/10 bg-white/70 p-5;
+}

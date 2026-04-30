@@ -14,7 +14,7 @@
           v-for="item in items"
           :key="item.path"
           :to="item.path"
-          class="group flex items-center justify-between rounded-2xl px-4 py-3 text-sm transition-all duration-200"
+          class="group flex cursor-pointer items-center justify-between rounded-2xl px-4 py-3 text-sm transition-all duration-200"
           :class="isActive(item.path) ? 'bg-ink text-white' : 'text-slate-600 hover:bg-white/70'"
         >
           <span>{{ item.label }}</span>
@@ -49,4 +49,3 @@ const items = [
 
 const isActive = (path: string) => route.path === path
 </script>
-

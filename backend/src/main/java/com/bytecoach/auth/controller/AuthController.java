@@ -21,9 +21,8 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public Result<Void> register(@Valid @RequestBody RegisterRequest request) {
-        authService.register(request);
-        return Result.success();
+    public Result<LoginResponse> register(@Valid @RequestBody RegisterRequest request) {
+        return Result.success(authService.register(request));
     }
 
     @PostMapping("/login")
@@ -42,4 +41,3 @@ public class AuthController {
         return Result.success("ok");
     }
 }
-

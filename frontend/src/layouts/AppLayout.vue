@@ -5,12 +5,13 @@
 
       <main class="space-y-4">
         <AppShellHeader
-          kicker="Stage 1 Skeleton"
-          title="A deliberate shell for the ByteCoach MVP"
-          subtitle="页面优先承载流程感和模块边界：从问答、面试到错题与计划，都放在同一条学习动线上。"
+          :kicker="headerMeta.kicker"
+          :title="headerMeta.title"
+          :subtitle="headerMeta.subtitle"
           :name="displayName"
           :role="authStore.user?.role ?? 'USER'"
           :initials="initials"
+          @logout="handleLogout"
         />
 
         <section class="paper-panel overflow-hidden p-4 md:p-6">
@@ -23,13 +24,26 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import AppShellHeader from '@/components/AppShellHeader.vue'
 import NavRail from '@/components/NavRail.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
+const route = useRoute()
 
 const displayName = computed(() => authStore.user?.nickname || 'Visitor')
 const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
-</script>
+const headerMeta = computed(() => {
+  const meta = route.meta as { kicker?: string; title?: string; subtitle?: string }
+  return {
+    kicker: meta.kicker ?? 'ByteCoach',
+    title: meta.title ?? 'Interview Studio',
+    subtitle: meta.subtitle ?? '围绕学习闭环组织功能、状态和下一步动作。'
+  }
+})
 
+const handleLogout = async () => {
+  await authStore.logout()
+}
+</script>

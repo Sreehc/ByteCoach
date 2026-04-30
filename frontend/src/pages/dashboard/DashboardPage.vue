@@ -1,63 +1,266 @@
 <template>
   <div class="space-y-6">
-    <div class="grid gap-4 xl:grid-cols-4 md:grid-cols-2">
-      <article v-for="metric in metrics" :key="metric.label" class="metric-card">
-        <p class="metric-label">{{ metric.label }}</p>
-        <p class="metric-value">{{ metric.value }}</p>
-        <p class="mt-2 text-sm text-slate-500">{{ metric.desc }}</p>
+    <section
+      v-if="showGuideCard"
+      class="paper-panel relative overflow-hidden border border-ember/15 bg-[linear-gradient(135deg,rgba(180,73,51,0.08),rgba(255,255,255,0.88))] p-6"
+    >
+      <div class="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-ember/10 blur-3xl"></div>
+      <div class="relative flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+        <div class="max-w-3xl">
+          <p class="section-kicker">First Session</p>
+          <h3 class="mt-3 font-display text-3xl text-ink">从一个动作开始，不要让首页只是空白看板</h3>
+          <p class="mt-3 text-sm leading-7 text-slate-600">
+            先发起一次问答或一场面试，系统才会逐步生成错题、薄弱点和计划完成率。这个阶段的首页重点是帮助你找到第一步。
+          </p>
+          <div class="mt-5 flex flex-wrap gap-3">
+            <RouterLink
+              v-for="action in quickActions"
+              :key="action.to"
+              :to="action.to"
+              class="inline-flex min-h-11 items-center rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5"
+            >
+              {{ action.label }}
+            </RouterLink>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-black/10 bg-white/70 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-white"
+          @click="dismissGuide"
+        >
+          知道了
+        </button>
+      </div>
+    </section>
+
+    <section v-if="loading" class="grid gap-4 xl:grid-cols-4 md:grid-cols-2">
+      <article v-for="index in 4" :key="index" class="metric-card">
+        <div class="h-4 w-20 animate-pulse rounded-full bg-slate-200"></div>
+        <div class="mt-5 h-12 w-24 animate-pulse rounded-2xl bg-slate-200"></div>
+        <div class="mt-3 h-4 w-full animate-pulse rounded-full bg-slate-100"></div>
       </article>
-    </div>
+    </section>
 
-    <div class="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-      <section class="paper-panel p-6">
-        <p class="section-kicker">Core Flow</p>
-        <div class="mt-4 grid gap-3 md:grid-cols-5">
-          <div v-for="step in steps" :key="step.title" class="rounded-3xl border border-black/5 bg-white/70 p-4">
-            <div class="font-display text-2xl text-ember">{{ step.index }}</div>
-            <div class="mt-2 font-semibold">{{ step.title }}</div>
-            <div class="mt-2 text-sm leading-6 text-slate-500">{{ step.desc }}</div>
-          </div>
-        </div>
+    <template v-else>
+      <section class="grid gap-4 xl:grid-cols-4 md:grid-cols-2">
+        <article v-for="metric in metrics" :key="metric.label" class="metric-card">
+          <p class="metric-label">{{ metric.label }}</p>
+          <p class="metric-value">{{ metric.value }}</p>
+          <p class="mt-2 text-sm leading-6 text-slate-500">{{ metric.desc }}</p>
+        </article>
       </section>
 
-      <section class="paper-panel p-6">
-        <p class="section-kicker">Weakness Top N</p>
-        <div class="mt-6 space-y-4">
-          <div v-for="topic in weakTopics" :key="topic.name">
-            <div class="flex items-center justify-between text-sm">
-              <span class="font-semibold">{{ topic.name }}</span>
-              <span class="text-slate-500">{{ topic.value }}%</span>
+      <section class="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+        <article class="paper-panel p-6">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p class="section-kicker">Recent Interviews</p>
+              <h3 class="mt-3 font-display text-3xl text-ink">最近面试结果</h3>
             </div>
-            <div class="mt-2 h-2 rounded-full bg-slate-200">
-              <div class="h-2 rounded-full bg-ember" :style="{ width: `${topic.value}%` }"></div>
+            <RouterLink class="text-sm font-semibold text-ember" to="/interview">开始下一场</RouterLink>
+          </div>
+
+          <div v-if="overview.recentInterviews.length" class="mt-6 space-y-3">
+            <div
+              v-for="interview in overview.recentInterviews"
+              :key="interview.sessionId"
+              class="rounded-[26px] border border-black/5 bg-white/75 p-4 transition hover:-translate-y-0.5"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <div class="text-xs uppercase tracking-[0.28em] text-slate-500">{{ interview.direction }}</div>
+                  <div class="mt-2 text-lg font-semibold text-ink">{{ interviewTitle(interview) }}</div>
+                </div>
+                <div class="text-right">
+                  <div class="font-display text-3xl text-ink">{{ formatScore(interview.totalScore) }}</div>
+                  <div class="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">{{ statusLabel(interview.status) }}</div>
+                </div>
+              </div>
+              <div class="mt-3 text-sm text-slate-500">{{ formatDate(interview.finishedAt) }}</div>
             </div>
           </div>
-        </div>
+
+          <div v-else class="empty-state-card mt-6">
+            <div class="font-semibold text-ink">还没有面试记录</div>
+            <p class="mt-2 text-sm leading-6 text-slate-500">
+              先完成一场 3-5 题的模拟面试，首页才会开始积累最近结果和平均分。
+            </p>
+          </div>
+        </article>
+
+        <article class="paper-panel p-6">
+          <p class="section-kicker">Weak Points</p>
+          <h3 class="mt-3 font-display text-3xl text-ink">薄弱点与计划节奏</h3>
+
+          <div class="mt-6 rounded-[26px] border border-black/5 bg-white/75 p-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm font-semibold text-ink">计划完成率</div>
+                <div class="mt-1 text-sm text-slate-500">当前激活计划的任务推进情况</div>
+              </div>
+              <div class="font-display text-4xl text-ink">{{ overview.planCompletionRate }}%</div>
+            </div>
+            <div class="mt-4 h-3 rounded-full bg-slate-200">
+              <div class="h-3 rounded-full bg-ember transition-all duration-300" :style="{ width: `${overview.planCompletionRate}%` }"></div>
+            </div>
+          </div>
+
+          <div v-if="overview.weakPoints.length" class="mt-5 space-y-4">
+            <div v-for="point in overview.weakPoints" :key="point.categoryName">
+              <div class="flex items-center justify-between gap-3 text-sm">
+                <div>
+                  <div class="font-semibold text-ink">{{ point.categoryName }}</div>
+                  <div class="text-slate-500">错题 {{ point.wrongCount }} · 平均分 {{ formatScore(point.score) }}</div>
+                </div>
+                <div class="font-display text-2xl text-ember">{{ point.wrongCount }}</div>
+              </div>
+              <div class="mt-2 h-2 rounded-full bg-slate-200">
+                <div
+                  class="h-2 rounded-full bg-pine"
+                  :style="{ width: `${Math.min(point.wrongCount * 20, 100)}%` }"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="empty-state-card mt-5">
+            <div class="font-semibold text-ink">还没有可计算的薄弱点</div>
+            <p class="mt-2 text-sm leading-6 text-slate-500">
+              先进入问答、面试或错题练习，系统才会根据真实学习记录生成重点复习方向。
+            </p>
+          </div>
+        </article>
       </section>
-    </div>
+
+      <section class="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
+        <article class="paper-panel p-6">
+          <p class="section-kicker">Quick Actions</p>
+          <h3 class="mt-3 font-display text-3xl text-ink">把首页变成起点，而不是终点</h3>
+          <div class="mt-6 grid gap-4 md:grid-cols-2">
+            <RouterLink
+              v-for="action in quickActions"
+              :key="action.to"
+              :to="action.to"
+              class="rounded-[26px] border border-black/5 bg-white/75 p-5 transition duration-200 hover:-translate-y-1 hover:border-ember/20"
+            >
+              <div class="text-xs uppercase tracking-[0.28em] text-slate-500">{{ action.kicker }}</div>
+              <div class="mt-3 font-display text-2xl text-ink">{{ action.label }}</div>
+              <p class="mt-2 text-sm leading-6 text-slate-500">{{ action.desc }}</p>
+            </RouterLink>
+          </div>
+        </article>
+
+        <article class="paper-panel p-6">
+          <p class="section-kicker">How To Move</p>
+          <h3 class="mt-3 font-display text-3xl text-ink">建议的起步顺序</h3>
+          <div class="mt-6 space-y-3">
+            <div v-for="step in steps" :key="step.index" class="rounded-[24px] border border-black/5 bg-white/75 p-4">
+              <div class="flex items-start gap-4">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink font-display text-white">
+                  {{ step.index }}
+                </div>
+                <div>
+                  <div class="font-semibold text-ink">{{ step.title }}</div>
+                  <div class="mt-1 text-sm leading-6 text-slate-500">{{ step.desc }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-const metrics = [
-  { label: '学习总次数', value: '18', desc: '问答、面试、复习行为都归到统一闭环里' },
-  { label: '平均面试分', value: '78', desc: '后续由 `interview_record` 聚合' },
-  { label: '错题数量', value: '12', desc: '低分题自动沉淀，不做手动录入优先' },
-  { label: '计划完成率', value: '64%', desc: '由 `study_plan_task` 的完成状态计算' }
+import { ElMessage } from 'element-plus'
+import { computed, onMounted, ref } from 'vue'
+import { fetchDashboardOverviewApi } from '@/api/dashboard'
+import type { DashboardOverview, RecentInterviewItem } from '@/types/api'
+import { useAuthStore } from '@/stores/auth'
+import { storage } from '@/utils/storage'
+
+const authStore = useAuthStore()
+const loading = ref(true)
+const guideDismissed = ref(false)
+const overview = ref<DashboardOverview>({
+  learningCount: 0,
+  averageScore: 0,
+  wrongCount: 0,
+  planCompletionRate: 0,
+  recentInterviews: [],
+  weakPoints: [],
+  firstVisit: true
+})
+
+const metrics = computed(() => [
+  { label: '学习总次数', value: String(overview.value.learningCount), desc: '问答与面试行为会共同构成你的学习节奏。' },
+  { label: '平均面试分', value: formatScore(overview.value.averageScore), desc: '当前按面试作答记录聚合，没有记录时保持真实 0 值。' },
+  { label: '错题数量', value: String(overview.value.wrongCount), desc: '低分题会自动沉淀到错题本，成为后续复习素材。' },
+  { label: '计划完成率', value: `${overview.value.planCompletionRate}%`, desc: '当前激活计划下，已完成任务在总任务中的占比。' }
+])
+
+const quickActions = [
+  { to: '/chat', label: '开始问答', kicker: 'Ask', desc: '先提一个问题，让系统开始积累你的知识盲点。' },
+  { to: '/interview', label: '开始面试', kicker: 'Interview', desc: '完成一场短面试，首页就能获得更有用的分数和结果。' },
+  { to: '/wrong', label: '查看错题', kicker: 'Review', desc: '把低分答案转成可追踪的复习资产。' },
+  { to: '/plan', label: '生成计划', kicker: 'Plan', desc: '根据真实弱点拆出一个可以执行的学习节奏。' }
 ]
 
 const steps = [
-  { index: '01', title: 'Login', desc: '先完成鉴权和状态恢复。' },
-  { index: '02', title: 'Ask', desc: '支持普通问答和知识问答。' },
-  { index: '03', title: 'Interview', desc: '每场 3-5 题，单次追问。' },
-  { index: '04', title: 'Wrong', desc: '低分自动入错题本。' },
-  { index: '05', title: 'Plan', desc: '围绕薄弱点生成任务。' }
+  { index: '01', title: '先问一个问题', desc: '普通问答和知识问答都可以作为你的第一条学习记录。' },
+  { index: '02', title: '做一场短面试', desc: '3-5 题就足够生成初始分数、点评和错题。' },
+  { index: '03', title: '回看错题', desc: '把失分点从即时回答转成可追踪的复习清单。' },
+  { index: '04', title: '生成计划', desc: '让首页开始显示任务完成率，而不是停留在单次练习。' }
 ]
 
-const weakTopics = [
-  { name: 'Spring', value: 84 },
-  { name: 'JVM', value: 71 },
-  { name: 'MySQL', value: 63 }
-]
+const showGuideCard = computed(() => {
+  const userId = authStore.user?.id
+  if (!userId || guideDismissed.value || !overview.value.firstVisit) return false
+  return !storage.getGuideSeen(userId)
+})
+
+const dismissGuide = () => {
+  if (authStore.user?.id) {
+    storage.setGuideSeen(authStore.user.id)
+  }
+  guideDismissed.value = true
+}
+
+const loadOverview = async () => {
+  loading.value = true
+  try {
+    const response = await fetchDashboardOverviewApi()
+    overview.value = response.data
+  } catch {
+    ElMessage.error('首页数据加载失败，请稍后重试')
+  } finally {
+    loading.value = false
+  }
+}
+
+const formatScore = (score: number) => {
+  return Number.isInteger(score) ? String(score) : score.toFixed(2)
+}
+
+const formatDate = (dateTime: string) => {
+  return new Intl.DateTimeFormat('zh-CN', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date(dateTime))
+}
+
+const interviewTitle = (interview: RecentInterviewItem) => {
+  return interview.status === 'finished' ? '已完成模拟面试' : '进行中的模拟面试'
+}
+
+const statusLabel = (status: string) => {
+  return status === 'finished' ? 'finished' : status
+}
+
+onMounted(() => {
+  void loadOverview()
+})
 </script>
-

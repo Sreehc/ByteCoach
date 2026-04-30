@@ -25,8 +25,11 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenUtil jwtTokenUtil;
 
     @Override
-    public void register(RegisterRequest request) {
-        userService.createUser(request.getUsername(), request.getPassword(), request.getNickname());
+    public LoginResponse register(RegisterRequest request) {
+        User user = userService.createUser(request.getUsername(), request.getPassword(), request.getNickname());
+        user.setLastLoginTime(LocalDateTime.now());
+        userService.updateById(user);
+        return buildLoginResponse(user);
     }
 
     @Override
@@ -37,6 +40,10 @@ public class AuthServiceImpl implements AuthService {
         User user = loginUser.getUser();
         user.setLastLoginTime(LocalDateTime.now());
         userService.updateById(user);
+        return buildLoginResponse(user);
+    }
+
+    private LoginResponse buildLoginResponse(User user) {
         UserInfoVO userInfo = UserInfoVO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -55,4 +62,3 @@ public class AuthServiceImpl implements AuthService {
         // Stateless JWT logout remains a no-op for MVP. Redis blacklist can be added later.
     }
 }
-

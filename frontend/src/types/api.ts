@@ -17,3 +17,26 @@ export interface LoginResponse {
   userInfo: UserInfo
 }
 
+export interface RecentInterviewItem {
+  sessionId: number
+  direction: string
+  totalScore: number
+  status: string
+  finishedAt: string
+}
+
+export interface WeakPointItem {
+  categoryName: string
+  wrongCount: number
+  score: number
+}
+
+export interface DashboardOverview {
+  learningCount: number
+  averageScore: number
+  wrongCount: number
+  planCompletionRate: number
+  recentInterviews: RecentInterviewItem[]
+  weakPoints: WeakPointItem[]
+  firstVisit: boolean
+}

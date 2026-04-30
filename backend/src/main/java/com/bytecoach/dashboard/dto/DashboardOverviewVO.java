@@ -11,8 +11,8 @@ public class DashboardOverviewVO {
     private Integer learningCount;
     private BigDecimal averageScore;
     private Integer wrongCount;
-    private List<String> recentInterviewResults;
-    private List<String> weakCategories;
-    private Integer currentPlanCompletionRate;
+    private Integer planCompletionRate;
+    private List<RecentInterviewVO> recentInterviews;
+    private List<WeakPointVO> weakPoints;
+    private Boolean firstVisit;
 }
-

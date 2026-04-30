@@ -19,12 +19,12 @@ http.interceptors.request.use((config) => {
 
 http.interceptors.response.use(
   (response) => response,
-  async (error) => {
+  (error) => {
     if (error.response?.status === 401) {
       storage.clearToken()
       storage.clearUser()
-      if (router.currentRoute.value.path !== '/login') {
-        await router.push('/login')
+      if (window.location.pathname !== '/login') {
+        window.location.replace('/login')
       }
     }
     ElMessage.error(error.response?.data?.message || '网络异常')
