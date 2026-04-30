@@ -3,13 +3,14 @@
     <section class="grid gap-4 lg:grid-cols-3">
       <article v-for="module in modules" :key="module.name" class="metric-card">
         <div class="metric-label">{{ module.scope }}</div>
-        <div class="mt-3 font-display text-3xl">{{ module.name }}</div>
+        <div class="mt-3 text-3xl font-semibold tracking-[-0.03em]">{{ module.name }}</div>
         <p class="mt-3 text-sm leading-6 text-slate-500">{{ module.desc }}</p>
       </article>
     </section>
 
     <section class="paper-panel p-6">
       <p class="section-kicker">Admin Boundary</p>
+      <div class="rule-divider mt-4"></div>
       <p class="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
         后台不是独立领域模块，当前只作为 `Question / Knowledge / Category` 的管理入口。阶段 1 只搭路由和壳，不进入完整增删改表单实现。
       </p>
@@ -24,4 +25,3 @@ const modules = [
   { name: 'Category', scope: '/api/admin/category/*', desc: '分类维护和排序。' }
 ]
 </script>
-

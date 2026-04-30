@@ -5,14 +5,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: '#10182b',
-        ember: '#b44933',
-        sand: '#f4ecdf',
-        fog: '#d5d8de',
-        pine: '#2e5b4e'
+        ink: '#172033',
+        accent: '#2f4f9d',
+        mist: '#eef2f7',
+        fog: '#c8d2e1',
+        shell: '#f5f7fb'
       },
       fontFamily: {
-        display: ['Fraunces', 'Georgia', 'serif'],
+        display: ['Manrope', 'Avenir Next', 'sans-serif'],
         body: ['Manrope', 'Avenir Next', 'sans-serif']
       },
       boxShadow: {
@@ -22,4 +22,3 @@ export default {
   },
   plugins: []
 } satisfies Config
-

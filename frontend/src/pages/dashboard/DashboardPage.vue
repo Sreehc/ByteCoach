@@ -2,13 +2,17 @@
   <div class="space-y-6">
     <section
       v-if="showGuideCard"
-      class="paper-panel relative overflow-hidden border border-ember/15 bg-[linear-gradient(135deg,rgba(180,73,51,0.08),rgba(255,255,255,0.88))] p-6"
+      class="paper-panel relative overflow-hidden bg-[linear-gradient(135deg,rgba(47,79,157,0.08),rgba(255,255,255,0.94))] p-6"
+      style="border-radius: var(--radius-lg);"
     >
-      <div class="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-ember/10 blur-3xl"></div>
+      <div
+        class="absolute -right-8 top-0 h-28 w-40 rotate-[8deg] bg-[rgba(47,79,157,0.08)] blur-2xl"
+        style="border-radius: var(--radius-lg);"
+      ></div>
       <div class="relative flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
         <div class="max-w-3xl">
           <p class="section-kicker">First Session</p>
-          <h3 class="mt-3 font-display text-3xl text-ink">从一个动作开始，不要让首页只是空白看板</h3>
+          <h3 class="mt-3 text-3xl font-semibold tracking-[-0.03em] text-ink">从一个动作开始，不要让首页只是空白看板</h3>
           <p class="mt-3 text-sm leading-7 text-slate-600">
             先发起一次问答或一场面试，系统才会逐步生成错题、薄弱点和计划完成率。这个阶段的首页重点是帮助你找到第一步。
           </p>
@@ -17,7 +21,7 @@
               v-for="action in quickActions"
               :key="action.to"
               :to="action.to"
-              class="inline-flex min-h-11 items-center rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5"
+              class="hard-button-primary"
             >
               {{ action.label }}
             </RouterLink>
@@ -25,7 +29,7 @@
         </div>
         <button
           type="button"
-          class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-black/10 bg-white/70 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-white"
+          class="hard-button-secondary"
           @click="dismissGuide"
         >
           知道了
@@ -35,9 +39,9 @@
 
     <section v-if="loading" class="grid gap-4 xl:grid-cols-4 md:grid-cols-2">
       <article v-for="index in 4" :key="index" class="metric-card">
-        <div class="h-4 w-20 animate-pulse rounded-full bg-slate-200"></div>
-        <div class="mt-5 h-12 w-24 animate-pulse rounded-2xl bg-slate-200"></div>
-        <div class="mt-3 h-4 w-full animate-pulse rounded-full bg-slate-100"></div>
+        <div class="h-4 w-20 animate-pulse bg-slate-200" style="border-radius: var(--radius-sm);"></div>
+        <div class="mt-5 h-12 w-24 animate-pulse bg-slate-200" style="border-radius: var(--radius-md);"></div>
+        <div class="mt-3 h-4 w-full animate-pulse bg-slate-100" style="border-radius: var(--radius-sm);"></div>
       </article>
     </section>
 
@@ -55,16 +59,16 @@
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p class="section-kicker">Recent Interviews</p>
-              <h3 class="mt-3 font-display text-3xl text-ink">最近面试结果</h3>
+              <h3 class="mt-3 text-3xl font-semibold tracking-[-0.03em] text-ink">最近面试结果</h3>
             </div>
-            <RouterLink class="text-sm font-semibold text-ember" to="/interview">开始下一场</RouterLink>
+            <RouterLink class="accent-link text-sm font-semibold" to="/interview">开始下一场</RouterLink>
           </div>
 
           <div v-if="overview.recentInterviews.length" class="mt-6 space-y-3">
             <div
               v-for="interview in overview.recentInterviews"
               :key="interview.sessionId"
-              class="rounded-[26px] border border-black/5 bg-white/75 p-4 transition hover:-translate-y-0.5"
+              class="surface-card surface-card-hover p-4"
             >
               <div class="flex items-start justify-between gap-3">
                 <div>
@@ -72,7 +76,7 @@
                   <div class="mt-2 text-lg font-semibold text-ink">{{ interviewTitle(interview) }}</div>
                 </div>
                 <div class="text-right">
-                  <div class="font-display text-3xl text-ink">{{ formatScore(interview.totalScore) }}</div>
+                  <div class="text-3xl font-semibold tracking-[-0.03em] text-ink">{{ formatScore(interview.totalScore) }}</div>
                   <div class="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">{{ statusLabel(interview.status) }}</div>
                 </div>
               </div>
@@ -90,33 +94,33 @@
 
         <article class="paper-panel p-6">
           <p class="section-kicker">Weak Points</p>
-          <h3 class="mt-3 font-display text-3xl text-ink">薄弱点与计划节奏</h3>
+          <h3 class="mt-3 text-3xl font-semibold tracking-[-0.03em] text-ink">薄弱点与计划节奏</h3>
 
-          <div class="mt-6 rounded-[26px] border border-black/5 bg-white/75 p-5">
+          <div class="surface-muted mt-6 p-5">
             <div class="flex items-center justify-between">
               <div>
                 <div class="text-sm font-semibold text-ink">计划完成率</div>
                 <div class="mt-1 text-sm text-slate-500">当前激活计划的任务推进情况</div>
               </div>
-              <div class="font-display text-4xl text-ink">{{ overview.planCompletionRate }}%</div>
+              <div class="text-4xl font-semibold tracking-[-0.03em] text-ink">{{ overview.planCompletionRate }}%</div>
             </div>
-            <div class="mt-4 h-3 rounded-full bg-slate-200">
-              <div class="h-3 rounded-full bg-ember transition-all duration-300" :style="{ width: `${overview.planCompletionRate}%` }"></div>
+            <div class="mt-4 h-3 rounded-full bg-slate-200/80">
+              <div class="h-3 rounded-full bg-accent transition-all duration-300" :style="{ width: `${overview.planCompletionRate}%` }"></div>
             </div>
           </div>
 
-          <div v-if="overview.weakPoints.length" class="mt-5 space-y-4">
-            <div v-for="point in overview.weakPoints" :key="point.categoryName">
+          <div v-if="overview.weakPoints.length" class="surface-muted mt-5 divide-y divide-slate-200/70 overflow-hidden">
+            <div v-for="point in overview.weakPoints" :key="point.categoryName" class="px-4 py-4">
               <div class="flex items-center justify-between gap-3 text-sm">
                 <div>
                   <div class="font-semibold text-ink">{{ point.categoryName }}</div>
                   <div class="text-slate-500">错题 {{ point.wrongCount }} · 平均分 {{ formatScore(point.score) }}</div>
                 </div>
-                <div class="font-display text-2xl text-ember">{{ point.wrongCount }}</div>
+                <div class="text-2xl font-semibold tracking-[-0.03em] text-accent">{{ point.wrongCount }}</div>
               </div>
               <div class="mt-2 h-2 rounded-full bg-slate-200">
                 <div
-                  class="h-2 rounded-full bg-pine"
+                  class="h-2 rounded-full bg-accent/80"
                   :style="{ width: `${Math.min(point.wrongCount * 20, 100)}%` }"
                 ></div>
               </div>
@@ -135,16 +139,16 @@
       <section class="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
         <article class="paper-panel p-6">
           <p class="section-kicker">Quick Actions</p>
-          <h3 class="mt-3 font-display text-3xl text-ink">把首页变成起点，而不是终点</h3>
+          <h3 class="mt-3 text-3xl font-semibold tracking-[-0.03em] text-ink">把首页变成起点，而不是终点</h3>
           <div class="mt-6 grid gap-4 md:grid-cols-2">
             <RouterLink
               v-for="action in quickActions"
               :key="action.to"
               :to="action.to"
-              class="rounded-[26px] border border-black/5 bg-white/75 p-5 transition duration-200 hover:-translate-y-1 hover:border-ember/20"
+              class="surface-card surface-card-hover p-5"
             >
               <div class="text-xs uppercase tracking-[0.28em] text-slate-500">{{ action.kicker }}</div>
-              <div class="mt-3 font-display text-2xl text-ink">{{ action.label }}</div>
+              <div class="mt-3 text-2xl font-semibold tracking-[-0.03em] text-ink">{{ action.label }}</div>
               <p class="mt-2 text-sm leading-6 text-slate-500">{{ action.desc }}</p>
             </RouterLink>
           </div>
@@ -152,11 +156,11 @@
 
         <article class="paper-panel p-6">
           <p class="section-kicker">How To Move</p>
-          <h3 class="mt-3 font-display text-3xl text-ink">建议的起步顺序</h3>
-          <div class="mt-6 space-y-3">
-            <div v-for="step in steps" :key="step.index" class="rounded-[24px] border border-black/5 bg-white/75 p-4">
+          <h3 class="mt-3 text-3xl font-semibold tracking-[-0.03em] text-ink">建议的起步顺序</h3>
+          <div class="surface-muted mt-6 divide-y divide-slate-200/70 overflow-hidden">
+            <div v-for="step in steps" :key="step.index" class="px-4 py-4">
               <div class="flex items-start gap-4">
-                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink font-display text-white">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-white">
                   {{ step.index }}
                 </div>
                 <div>

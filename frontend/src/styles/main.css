@@ -1,17 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Manrope:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   color-scheme: light;
-  --bc-ink: #10182b;
-  --bc-ember: #b44933;
-  --bc-sand: #f4ecdf;
-  --bc-fog: #d5d8de;
-  --bc-pine: #2e5b4e;
-  --bc-panel: rgba(255, 255, 255, 0.78);
-  --bc-border: rgba(16, 24, 43, 0.1);
+  --bc-ink: #172033;
+  --bc-accent: #2f4f9d;
+  --bc-accent-strong: #233d79;
+  --bc-shell: #f5f7fb;
+  --bc-surface: rgba(255, 255, 255, 0.84);
+  --bc-surface-solid: #ffffff;
+  --bc-surface-muted: #f0f4fa;
+  --bc-surface-soft: #f7f9fc;
+  --bc-border: rgba(23, 32, 51, 0.07);
+  --bc-border-strong: rgba(23, 32, 51, 0.12);
+  --bc-shadow: 0 14px 36px rgba(31, 43, 72, 0.06);
+  --bc-shadow-soft: 0 8px 22px rgba(31, 43, 72, 0.045);
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+  --ease-hard: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html,
@@ -25,9 +36,17 @@ body {
   font-family: theme('fontFamily.body');
   color: var(--bc-ink);
   background:
-    radial-gradient(circle at top left, rgba(180, 73, 51, 0.18), transparent 25%),
-    radial-gradient(circle at top right, rgba(46, 91, 78, 0.16), transparent 28%),
-    linear-gradient(135deg, #f7f0e6 0%, #f3eee5 52%, #ebe6dc 100%);
+    linear-gradient(rgba(99, 114, 139, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 114, 139, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at top left, rgba(47, 79, 157, 0.05), transparent 24%),
+    radial-gradient(circle at top right, rgba(123, 143, 184, 0.06), transparent 28%),
+    linear-gradient(180deg, #f7f8fb 0%, #f2f5fa 48%, #eef2f7 100%);
+  background-size:
+    32px 32px,
+    32px 32px,
+    auto,
+    auto,
+    auto;
 }
 
 button,
@@ -45,15 +64,21 @@ a {
 }
 
 .paper-panel {
-  @apply rounded-[28px] border border-[color:var(--bc-border)] bg-[color:var(--bc-panel)] shadow-frame backdrop-blur;
+  @apply border bg-[color:var(--bc-surface)] backdrop-blur-[4px];
+  border-color: var(--bc-border);
+  border-radius: var(--radius-md);
+  box-shadow:
+    var(--bc-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .section-kicker {
-  @apply text-xs font-semibold uppercase tracking-[0.32em] text-ember;
+  color: var(--bc-accent);
+  @apply text-[11px] font-semibold uppercase tracking-[0.3em];
 }
 
 .page-title {
-  @apply font-display text-4xl leading-tight text-ink md:text-5xl;
+  @apply text-4xl font-semibold leading-tight tracking-[-0.03em] text-ink md:text-5xl;
 }
 
 .page-subtitle {
@@ -61,11 +86,28 @@ a {
 }
 
 .metric-card {
-  @apply paper-panel p-5 transition-transform duration-200 hover:-translate-y-1;
+  @apply p-5;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(23, 32, 51, 0.04);
+  border-radius: var(--radius-md);
+  box-shadow: var(--bc-shadow-soft);
+  transition:
+    background-color 160ms var(--ease-hard),
+    box-shadow 160ms var(--ease-hard),
+    transform 160ms var(--ease-hard);
+}
+
+.metric-card:hover {
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 16px 36px rgba(31, 43, 72, 0.08);
+}
+
+.metric-card:active {
+  transform: translateY(1px) scale(0.995);
 }
 
 .metric-value {
-  @apply mt-4 font-display text-4xl text-ink;
+  @apply mt-4 text-4xl font-semibold tracking-[-0.03em] text-ink;
 }
 
 .metric-label {
@@ -73,5 +115,178 @@ a {
 }
 
 .empty-state-card {
-  @apply rounded-[26px] border border-dashed border-black/10 bg-white/70 p-5;
+  @apply p-5;
+  background: var(--bc-surface-soft);
+  border: 1px solid rgba(23, 32, 51, 0.05);
+  border-radius: var(--radius-md);
+}
+
+.hard-button {
+  @apply inline-flex min-h-11 items-center justify-center px-4 py-2 text-sm font-semibold;
+  border-radius: var(--radius-sm);
+  transition:
+    background-color 160ms var(--ease-hard),
+    border-color 160ms var(--ease-hard),
+    color 160ms var(--ease-hard),
+    transform 160ms var(--ease-hard);
+}
+
+.hard-button:active {
+  transform: translateY(1px) scale(0.995);
+}
+
+.hard-button-primary {
+  @apply hard-button text-white;
+  background: linear-gradient(180deg, #365ab0 0%, #2f4f9d 100%);
+  box-shadow: 0 10px 20px rgba(47, 79, 157, 0.18);
+}
+
+.hard-button-primary:hover {
+  background: linear-gradient(180deg, #314f9e 0%, #294386 100%);
+}
+
+.hard-button-secondary {
+  @apply hard-button text-[color:var(--bc-ink)];
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(23, 32, 51, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.hard-button-secondary:hover {
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 10px 24px rgba(31, 43, 72, 0.06);
+}
+
+.hard-chip {
+  @apply inline-flex items-center px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em];
+  color: var(--bc-accent);
+  background: rgba(47, 79, 157, 0.08);
+  border-radius: var(--radius-pill);
+}
+
+.rule-divider {
+  border-top: 1px solid rgba(23, 32, 51, 0.06);
+}
+
+.surface-card {
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(23, 32, 51, 0.04);
+  border-radius: var(--radius-md);
+  box-shadow: var(--bc-shadow-soft);
+}
+
+.surface-card-hover {
+  transition:
+    background-color 160ms var(--ease-hard),
+    box-shadow 160ms var(--ease-hard),
+    transform 160ms var(--ease-hard);
+}
+
+.surface-card-hover:hover {
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 16px 36px rgba(31, 43, 72, 0.08);
+}
+
+.surface-card-hover:active {
+  transform: translateY(1px);
+}
+
+.surface-muted {
+  background: var(--bc-surface-muted);
+  border-radius: var(--radius-md);
+}
+
+.accent-link {
+  color: var(--bc-accent);
+  transition: color 160ms var(--ease-hard);
+}
+
+.accent-link:hover {
+  color: var(--bc-accent-strong);
+}
+
+.action-button {
+  background: linear-gradient(180deg, #365ab0 0%, #2f4f9d 100%) !important;
+  border: 0 !important;
+  color: #fff !important;
+  box-shadow: 0 10px 20px rgba(47, 79, 157, 0.18) !important;
+}
+
+.action-button:hover {
+  background: linear-gradient(180deg, #314f9e 0%, #294386 100%) !important;
+}
+
+.el-button {
+  border-radius: var(--radius-sm);
+  min-height: 44px;
+}
+
+.el-input__wrapper,
+.el-textarea__inner,
+.el-select__wrapper,
+.el-message {
+  border-radius: var(--radius-sm) !important;
+}
+
+.el-input__wrapper,
+.el-select__wrapper,
+.el-textarea__inner {
+  box-shadow:
+    inset 0 0 0 1px rgba(23, 32, 51, 0.08),
+    0 1px 0 rgba(23, 32, 51, 0.02) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  transition:
+    box-shadow 160ms var(--ease-hard),
+    background-color 160ms var(--ease-hard),
+    transform 160ms var(--ease-hard);
+}
+
+.el-input__wrapper:hover,
+.el-select__wrapper:hover,
+.el-textarea__inner:hover {
+  box-shadow:
+    inset 0 0 0 1px rgba(23, 32, 51, 0.14),
+    0 2px 8px rgba(23, 32, 51, 0.03) !important;
+}
+
+.el-input__wrapper.is-focus,
+.el-select__wrapper.is-focused,
+.el-textarea__inner:focus {
+  box-shadow:
+    inset 0 0 0 1px rgba(47, 79, 157, 0.3),
+    0 0 0 4px rgba(47, 79, 157, 0.08) !important;
+}
+
+.el-form-item__label {
+  color: var(--bc-ink) !important;
+  font-weight: 600;
+}
+
+.el-message {
+  border: 1px solid rgba(23, 32, 51, 0.06) !important;
+  box-shadow:
+    0 12px 30px rgba(31, 43, 72, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+:focus-visible {
+  outline: 2px solid rgba(47, 79, 157, 0.52);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(47, 79, 157, 0.16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

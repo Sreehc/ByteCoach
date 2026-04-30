@@ -2,8 +2,14 @@
   <div class="flex min-h-screen items-center justify-center px-4 py-8">
     <div class="grid w-full max-w-6xl gap-5 lg:grid-cols-[1.1fr_0.9fr]">
       <section class="paper-panel relative overflow-hidden p-8 md:p-12">
-        <div class="absolute -left-16 top-10 h-48 w-48 rounded-full bg-ember/20 blur-3xl"></div>
-        <div class="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-pine/20 blur-3xl"></div>
+        <div
+          class="absolute -left-8 top-10 h-36 w-44 -rotate-6 bg-[rgba(47,79,157,0.08)] blur-2xl"
+          style="border-radius: var(--radius-lg);"
+        ></div>
+        <div
+          class="absolute bottom-8 right-8 h-44 w-52 rotate-6 bg-[rgba(131,149,189,0.14)] blur-2xl"
+          style="border-radius: var(--radius-lg);"
+        ></div>
         <p class="section-kicker relative">ByteCoach</p>
         <h1 class="page-title relative mt-5 max-w-xl">
           进入一个围绕 Java 面试准备设计的学习驾驶舱，而不是普通聊天页。
@@ -33,7 +39,8 @@
 
       <section class="paper-panel p-8 md:p-10">
         <p class="section-kicker">Sign In</p>
-        <h2 class="mt-4 font-display text-3xl text-ink">进入 ByteCoach</h2>
+        <h2 class="mt-4 text-3xl font-semibold tracking-[-0.03em] text-ink">进入 ByteCoach</h2>
+        <div class="rule-divider mt-6"></div>
         <el-form ref="formRef" :model="form" :rules="rules" class="mt-8" label-position="top" @submit.prevent>
           <el-form-item label="用户名" prop="username">
             <el-input v-model="form.username" placeholder="demo" size="large" />
@@ -41,13 +48,13 @@
           <el-form-item label="密码" prop="password">
             <el-input v-model="form.password" type="password" show-password placeholder="123456" size="large" />
           </el-form-item>
-          <el-button :loading="loading" type="primary" size="large" class="mt-4 w-full !bg-ink !border-ink" @click="handleLogin">
+          <el-button :loading="loading" type="primary" size="large" class="action-button mt-4 w-full transition active:translate-y-px" @click="handleLogin">
             登录
           </el-button>
         </el-form>
         <div class="mt-6 flex items-center justify-between text-sm text-slate-500">
           <span>登录后直接进入 Dashboard 总览</span>
-          <RouterLink class="text-ember" to="/register">创建账号</RouterLink>
+          <RouterLink class="accent-link" to="/register">创建账号</RouterLink>
         </div>
       </section>
     </div>

@@ -4,7 +4,7 @@
       <article v-for="item in wrongItems" :key="item.id" class="metric-card">
         <div class="flex items-center justify-between">
           <span class="font-semibold">{{ item.title }}</span>
-          <span class="rounded-full bg-sand px-3 py-1 text-xs uppercase tracking-[0.24em] text-ember">
+          <span class="hard-chip" :class="item.mastery === 'mastered' ? '!bg-accent !text-white' : '!bg-white/80 !text-slate-600'">
             {{ item.mastery }}
           </span>
         </div>
@@ -22,4 +22,3 @@ const wrongItems = [
   { id: 3, title: 'MySQL 索引', mastery: 'mastered', reason: '索引失效场景描述还不稳定。' }
 ]
 </script>
-

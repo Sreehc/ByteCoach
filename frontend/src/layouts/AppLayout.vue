@@ -14,7 +14,7 @@
           @logout="handleLogout"
         />
 
-        <section class="paper-panel overflow-hidden p-4 md:p-6">
+        <section class="overflow-hidden p-1 md:p-2">
           <RouterView />
         </section>
       </main>

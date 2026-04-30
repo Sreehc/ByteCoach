@@ -2,16 +2,16 @@
   <div class="grid gap-4 xl:grid-cols-[0.85fr_1.15fr]">
     <section class="paper-panel p-6">
       <p class="section-kicker">Plan Generator</p>
-      <h3 class="mt-4 font-display text-3xl text-ink">围绕错题和薄弱点拆成每日任务</h3>
+      <h3 class="mt-4 text-3xl font-semibold tracking-[-0.03em] text-ink">围绕错题和薄弱点拆成每日任务</h3>
       <p class="mt-4 text-sm leading-7 text-slate-600">
         阶段 1 只做一次性生成和任务状态更新，不做动态调整和个性化增强。
       </p>
       <div class="mt-6 grid gap-3">
-        <div class="rounded-3xl border border-black/5 bg-white/70 p-4">
+        <div class="surface-card p-4">
           <div class="text-xs uppercase tracking-[0.24em] text-slate-500">Direction</div>
           <div class="mt-2 font-semibold">Java Backend</div>
         </div>
-        <div class="rounded-3xl border border-black/5 bg-white/70 p-4">
+        <div class="surface-card p-4">
           <div class="text-xs uppercase tracking-[0.24em] text-slate-500">Cycle</div>
           <div class="mt-2 font-semibold">7 Days / 60 mins daily</div>
         </div>
@@ -20,14 +20,14 @@
 
     <section class="paper-panel p-6">
       <p class="section-kicker">Task Timeline</p>
-      <div class="mt-6 space-y-3">
-        <div v-for="task in tasks" :key="task.id" class="rounded-3xl border border-black/5 bg-white/70 p-4">
+      <div class="surface-muted mt-6 divide-y divide-slate-200/70 overflow-hidden">
+        <div v-for="task in tasks" :key="task.id" class="px-4 py-4">
           <div class="flex items-center justify-between">
             <div>
               <div class="font-semibold">{{ task.content }}</div>
               <div class="mt-1 text-sm text-slate-500">{{ task.date }}</div>
             </div>
-            <span class="rounded-full px-3 py-1 text-xs uppercase tracking-[0.24em]" :class="task.status === 'done' ? 'bg-pine text-white' : 'bg-sand text-ember'">
+            <span class="hard-chip" :class="task.status === 'done' ? '!bg-accent !text-white' : '!bg-white/80 !text-slate-600'">
               {{ task.status }}
             </span>
           </div>
@@ -44,4 +44,3 @@ const tasks = [
   { id: 3, date: 'Day 3', content: '复盘 MySQL 事务与锁问题', status: 'done' }
 ]
 </script>
-

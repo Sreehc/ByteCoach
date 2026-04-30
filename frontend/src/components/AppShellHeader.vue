@@ -7,8 +7,8 @@
     </div>
 
     <div class="flex flex-col gap-3 self-start sm:flex-row sm:items-center">
-      <div class="flex items-center gap-3 rounded-full border border-black/5 bg-white/60 px-3 py-2">
-        <div class="flex size-10 items-center justify-center rounded-full bg-ink font-display text-white">
+      <div class="surface-card flex items-center gap-3 px-3 py-2">
+        <div class="flex size-10 items-center justify-center rounded-full bg-accent text-sm font-semibold text-white">
           {{ initials }}
         </div>
         <div>
@@ -19,7 +19,7 @@
 
       <button
         type="button"
-        class="inline-flex cursor-pointer items-center justify-center rounded-full border border-black/10 bg-white/70 px-4 py-2 text-sm font-semibold text-ink transition hover:-translate-y-0.5 hover:bg-white"
+        class="hard-button-secondary"
         @click="$emit('logout')"
       >
         退出登录

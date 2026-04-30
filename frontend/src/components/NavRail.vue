@@ -1,31 +1,38 @@
 <template>
-  <aside class="paper-panel flex h-full flex-col justify-between p-5">
+  <aside class="paper-panel flex h-full flex-col justify-between p-6">
     <div class="space-y-8">
       <div>
         <div class="section-kicker">ByteCoach</div>
-        <h1 class="mt-3 font-display text-3xl leading-none text-ink">Interview Studio</h1>
+        <h1 class="mt-3 text-3xl font-semibold leading-none tracking-[-0.03em] text-ink">Interview Studio</h1>
         <p class="mt-3 text-sm leading-6 text-slate-500">
           聚焦 Java 后端面试准备的最小学习闭环。
         </p>
       </div>
 
-      <nav class="space-y-2">
+      <nav class="space-y-1 pt-2">
         <RouterLink
           v-for="item in items"
           :key="item.path"
           :to="item.path"
-          class="group flex cursor-pointer items-center justify-between rounded-2xl px-4 py-3 text-sm transition-all duration-200"
-          :class="isActive(item.path) ? 'bg-ink text-white' : 'text-slate-600 hover:bg-white/70'"
+          class="group flex cursor-pointer items-center justify-between px-4 py-3 text-sm transition-all duration-150"
+          style="border-radius: var(--radius-md);"
+          :class="isActive(item.path) ? 'bg-accent/10 text-ink shadow-[inset_0_0_0_1px_rgba(47,79,157,0.08)]' : 'text-slate-600 hover:bg-white/70 hover:text-ink active:translate-y-px'"
         >
-          <span>{{ item.label }}</span>
-          <span class="font-display text-base opacity-60">{{ item.index }}</span>
+          <div class="flex items-center gap-3">
+            <span
+              class="h-2.5 w-2.5 rounded-full transition-colors duration-150"
+              :class="isActive(item.path) ? 'bg-accent' : 'bg-slate-300 group-hover:bg-slate-400'"
+            ></span>
+            <span class="font-semibold">{{ item.label }}</span>
+          </div>
+          <span class="text-[11px] font-semibold tracking-[0.24em] opacity-55">{{ item.index }}</span>
         </RouterLink>
       </nav>
     </div>
 
-    <div class="rounded-3xl bg-ink px-4 py-5 text-white">
-      <p class="text-xs uppercase tracking-[0.28em] text-white/60">MVP Freeze</p>
-      <p class="mt-3 text-sm leading-6 text-white/80">
+    <div class="surface-muted px-4 py-5">
+      <p class="text-xs font-semibold uppercase tracking-[0.28em] text-accent">MVP Freeze</p>
+      <p class="mt-3 text-sm leading-6 text-slate-600">
         登录、问答、面试、错题、计划、Dashboard 六段主链路优先。
       </p>
     </div>
