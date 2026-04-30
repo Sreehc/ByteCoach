@@ -10,8 +10,8 @@ import lombok.Data;
 public class ChatMessageVO {
     private Long id;
     private String role;
+    private String messageType;
     private String content;
     private LocalDateTime createTime;
     private List<ChatMessageReferenceVO> references;
 }
-

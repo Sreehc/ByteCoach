@@ -12,6 +12,16 @@ public class DefaultPromptTemplateService implements PromptTemplateService {
     }
 
     @Override
+    public String knowledgeChatPrompt() {
+        return "You are ByteCoach, a Java backend interview tutor. Answer only with the provided knowledge context when possible, and stay honest when context is insufficient.";
+    }
+
+    @Override
+    public String referenceConstraintPrompt() {
+        return "When references are provided, ground the answer in them and keep the explanation compact and interview-oriented.";
+    }
+
+    @Override
     public String interviewScorePrompt() {
         return "Score the interview answer from 0 to 100 and explain the gaps briefly.";
     }
@@ -26,4 +36,3 @@ public class DefaultPromptTemplateService implements PromptTemplateService {
         return "Generate a compact study plan based on weaknesses and wrong questions.";
     }
 }
-

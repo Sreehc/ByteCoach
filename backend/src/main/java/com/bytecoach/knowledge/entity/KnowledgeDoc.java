@@ -1,0 +1,18 @@
+package com.bytecoach.knowledge.entity;
+
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.bytecoach.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@TableName("knowledge_doc")
+@EqualsAndHashCode(callSuper = true)
+public class KnowledgeDoc extends BaseEntity {
+    private String title;
+    private Long categoryId;
+    private String sourceType;
+    private String fileUrl;
+    private String summary;
+    private String status;
+}

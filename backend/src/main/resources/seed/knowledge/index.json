@@ -1,0 +1,23 @@
+[
+  {
+    "seedKey": "spring-core-notes",
+    "title": "Spring 核心笔记",
+    "categoryName": "Spring",
+    "summary": "覆盖 IOC、AOP、事务与常见面试追问。",
+    "fileName": "spring-core-notes.md"
+  },
+  {
+    "seedKey": "jvm-interview-handbook",
+    "title": "JVM 面试手册",
+    "categoryName": "JVM",
+    "summary": "覆盖内存区域、垃圾回收器和类加载流程。",
+    "fileName": "jvm-interview-handbook.md"
+  },
+  {
+    "seedKey": "mysql-high-frequency",
+    "title": "MySQL 高频题",
+    "categoryName": "MySQL",
+    "summary": "覆盖索引、事务、锁与执行计划。",
+    "fileName": "mysql-high-frequency.md"
+  }
+]

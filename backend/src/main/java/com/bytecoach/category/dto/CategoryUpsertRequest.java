@@ -12,5 +12,8 @@ public class CategoryUpsertRequest {
 
     @NotBlank(message = "cannot be blank")
     private String type;
-}
 
+    private Integer sortOrder;
+
+    private Integer status;
+}

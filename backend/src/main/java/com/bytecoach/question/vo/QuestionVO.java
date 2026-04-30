@@ -1,5 +1,6 @@
 package com.bytecoach.question.vo;
 
+import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Data;
 
@@ -8,7 +9,15 @@ import lombok.Data;
 public class QuestionVO {
     private Long id;
     private String title;
+    private Long categoryId;
+    private String categoryName;
+    private String type;
     private String difficulty;
+    private Integer frequency;
+    private String tags;
     private String standardAnswer;
+    private String scoreStandard;
+    private String source;
+    private LocalDateTime createTime;
+    private LocalDateTime updateTime;
 }
-

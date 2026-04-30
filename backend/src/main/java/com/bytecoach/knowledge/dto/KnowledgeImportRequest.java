@@ -6,11 +6,9 @@ import lombok.Data;
 @Data
 public class KnowledgeImportRequest {
     @NotBlank(message = "cannot be blank")
-    private String title;
-
-    @NotBlank(message = "cannot be blank")
-    private String sourceType;
+    private String seedKey;
 
     private Long categoryId;
-}
 
+    private Boolean forceRebuild;
+}

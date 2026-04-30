@@ -178,4 +178,53 @@ INSERT IGNORE INTO category (id, name, type, sort_order, status, create_time, up
 VALUES
     (1, 'Spring', 'question', 1, 1, NOW(), NOW()),
     (2, 'JVM', 'knowledge', 2, 1, NOW(), NOW()),
-    (3, 'MySQL', 'interview', 3, 1, NOW(), NOW());
+    (3, 'MySQL', 'interview', 3, 1, NOW(), NOW()),
+    (4, 'JVM', 'question', 4, 1, NOW(), NOW()),
+    (5, 'MySQL', 'question', 5, 1, NOW(), NOW());
+
+INSERT IGNORE INTO question (
+    id, title, category_id, type, difficulty, frequency, tags, standard_answer, score_standard, source, create_time, update_time
+)
+VALUES
+    (
+        1001,
+        '解释 Spring AOP 的动态代理实现',
+        1,
+        'short_answer',
+        'medium',
+        8,
+        'Spring,AOP,代理',
+        'Spring AOP 常见实现方式是 JDK 动态代理和 CGLIB。接口代理优先使用 JDK 动态代理，目标类没有接口时通常使用 CGLIB。',
+        '至少提到 JDK 动态代理、CGLIB 以及两者适用边界。',
+        'seed',
+        NOW(),
+        NOW()
+    ),
+    (
+        1002,
+        'JVM CMS 和 G1 的主要差异是什么？',
+        4,
+        'short_answer',
+        'hard',
+        7,
+        'JVM,GC,CMS,G1',
+        'CMS 以最短停顿为目标但会产生内存碎片，G1 面向服务端大堆内存，按 Region 回收并兼顾吞吐与停顿。',
+        '至少说明目标、内存管理方式和典型问题。',
+        'seed',
+        NOW(),
+        NOW()
+    ),
+    (
+        1003,
+        'MySQL 为什么会出现索引失效？',
+        5,
+        'short_answer',
+        'medium',
+        6,
+        'MySQL,索引,执行计划',
+        '常见原因包括最左前缀被破坏、列上使用函数或表达式、隐式类型转换、范围查询后继续使用联合索引列等。',
+        '至少给出 3 个典型场景。',
+        'seed',
+        NOW(),
+        NOW()
+    );

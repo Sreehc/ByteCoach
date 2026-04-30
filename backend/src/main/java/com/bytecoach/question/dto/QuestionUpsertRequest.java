@@ -17,6 +17,15 @@ public class QuestionUpsertRequest {
     @NotBlank(message = "cannot be blank")
     private String difficulty;
 
-    private String standardAnswer;
-}
+    private String type;
 
+    private Integer frequency;
+
+    private String tags;
+
+    private String standardAnswer;
+
+    private String scoreStandard;
+
+    private String source;
+}

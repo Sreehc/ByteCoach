@@ -9,5 +9,6 @@ public class CategoryVO {
     private Long id;
     private String name;
     private String type;
+    private Integer sortOrder;
+    private Integer status;
 }
-
