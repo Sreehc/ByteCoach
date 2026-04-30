@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: bytecoach-backend
+  profiles:
+    active: dev
+
+server:
+  port: 8080
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+knife4j:
+  enable: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.bytecoach: INFO
+

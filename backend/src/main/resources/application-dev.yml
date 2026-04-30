@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${BYTECOACH_DB_HOST:127.0.0.1}:${BYTECOACH_DB_PORT:3306}/${BYTECOACH_DB_NAME:bytecoach}?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: ${BYTECOACH_DB_USERNAME:root}
+    password: ${BYTECOACH_DB_PASSWORD:root}
+  data:
+    redis:
+      host: ${BYTECOACH_REDIS_HOST:127.0.0.1}
+      port: ${BYTECOACH_REDIS_PORT:6379}
+      database: ${BYTECOACH_REDIS_DB:0}
+      password: ${BYTECOACH_REDIS_PASSWORD:}
+      timeout: 5s
+
+bytecoach:
+  security:
+    jwt-secret: ${BYTECOACH_JWT_SECRET:ByteCoachJwtSecretByteCoachJwtSecret123456}
+    jwt-expire-seconds: ${BYTECOACH_JWT_EXPIRE_SECONDS:86400}
+  ai:
+    llm:
+      enabled: ${BYTECOACH_LLM_ENABLED:false}
+      base-url: ${BYTECOACH_LLM_BASE_URL:https://api.openai.com/v1}
+      api-key: ${BYTECOACH_LLM_API_KEY:}
+      model: ${BYTECOACH_LLM_MODEL:gpt-4.1-mini}
+      timeout-seconds: ${BYTECOACH_LLM_TIMEOUT_SECONDS:30}
+

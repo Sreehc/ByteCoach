@@ -1,0 +1,45 @@
+import axios, { type AxiosRequestConfig } from 'axios'
+import { ElMessage } from 'element-plus'
+import router from '@/router'
+import { storage } from './storage'
+import type { ApiResponse } from '@/types/api'
+
+const http = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  timeout: 15000
+})
+
+http.interceptors.request.use((config) => {
+  const token = storage.getToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+http.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      storage.clearToken()
+      storage.clearUser()
+      if (router.currentRoute.value.path !== '/login') {
+        await router.push('/login')
+      }
+    }
+    ElMessage.error(error.response?.data?.message || '网络异常')
+    return Promise.reject(error)
+  }
+)
+
+export default http
+
+export async function request<T>(config: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  const response = await http.request<ApiResponse<T>>(config)
+  const payload = response.data
+  if (payload.code !== 200) {
+    ElMessage.error(payload.message || '请求失败')
+    return Promise.reject(payload)
+  }
+  return payload
+}
