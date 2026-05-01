@@ -1,37 +1,223 @@
 <template>
-  <div class="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-    <section class="paper-panel p-6">
-      <p class="section-kicker">Interview Setup</p>
-      <h3 class="mt-4 text-3xl font-semibold tracking-[-0.03em] text-ink">每场 3-5 题，一轮追问</h3>
-      <div class="mt-6 grid gap-3">
-        <div class="surface-card p-4">
-          <div class="text-xs uppercase tracking-[0.24em] text-slate-500">Direction</div>
-          <div class="mt-2 font-semibold">Spring</div>
-        </div>
-        <div class="surface-card p-4">
-          <div class="text-xs uppercase tracking-[0.24em] text-slate-500">Current Question</div>
-          <div class="mt-2 font-semibold">解释 Spring AOP 的底层实现原理</div>
-        </div>
-      </div>
-    </section>
+  <div class="space-y-4">
+    <!-- Setup / Active Interview Header -->
+    <section class="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
+      <!-- Left Panel -->
+      <div class="paper-panel p-6">
+        <p class="section-kicker">Interview Setup</p>
+        <h3 class="mt-4 text-3xl font-semibold tracking-[-0.03em] text-ink">
+          {{ phase === 'idle' ? '每场 3-5 题，一轮追问' : `第 ${currentQuestion?.currentIndex ?? '?'} 题 / 共 ${currentQuestion?.questionCount ?? '?'} 题` }}
+        </h3>
 
-    <section class="paper-panel p-6">
-      <p class="section-kicker">Scoring Response</p>
-      <div class="mt-5 bg-[linear-gradient(180deg,#365ab0_0%,#2f4f9d_100%)] p-6 text-white shadow-[0_16px_36px_rgba(47,79,157,0.18)]" style="border-radius: var(--radius-lg);">
-        <div class="text-xs uppercase tracking-[0.24em] text-white/60">AI Feedback</div>
-        <div class="mt-3 text-5xl font-semibold tracking-[-0.03em]">78</div>
-        <p class="mt-4 text-sm leading-7 text-white/80">
-          点评、标准答案和单次追问都已经在接口基线上固定。后续联调时，只需要把这个展示壳接到 `/api/interview/answer`。
-        </p>
-      </div>
-      <div class="mt-4 grid gap-3 md:grid-cols-2">
-        <div class="surface-card p-4">
-          <div class="font-semibold">标准答案</div>
-          <p class="mt-2 text-sm leading-6 text-slate-500">包含 JDK 动态代理、CGLIB 及使用边界。</p>
+        <!-- Idle: Setup Form -->
+        <div v-if="phase === 'idle'" class="mt-6 space-y-4">
+          <div class="surface-card p-4">
+            <div class="text-xs uppercase tracking-[0.24em] text-slate-500">Direction</div>
+            <el-select v-model="direction" size="large" class="mt-2 w-full">
+              <el-option v-for="d in directions" :key="d" :label="d" :value="d" />
+            </el-select>
+          </div>
+          <div class="surface-card p-4">
+            <div class="text-xs uppercase tracking-[0.24em] text-slate-500">Question Count</div>
+            <el-input-number v-model="questionCount" :min="3" :max="5" size="large" class="mt-2 w-full" />
+          </div>
+          <el-button
+            :loading="starting"
+            type="primary"
+            size="large"
+            class="action-button w-full"
+            @click="handleStart"
+          >
+            开始面试
+          </el-button>
         </div>
-        <div class="surface-card p-4">
-          <div class="font-semibold">自动错题</div>
-          <p class="mt-2 text-sm leading-6 text-slate-500">低分题直接沉淀到 `wrong_question`。</p>
+
+        <!-- In Progress: Current Question -->
+        <div v-else-if="phase !== 'idle'" class="mt-6 space-y-4">
+          <!-- Progress Bar -->
+          <div class="surface-card p-4">
+            <div class="flex items-center justify-between text-xs uppercase tracking-[0.22em] text-slate-500">
+              <span>Progress</span>
+              <span>{{ currentQuestion?.currentIndex ?? 0 }} / {{ currentQuestion?.questionCount ?? 0 }}</span>
+            </div>
+            <div class="mt-3 h-2 rounded-full bg-slate-200/80">
+              <div
+                class="h-2 rounded-full bg-accent transition-all duration-500"
+                :style="{ width: `${progressPercent}%` }"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Current Question -->
+          <div class="surface-card p-4">
+            <div class="text-xs uppercase tracking-[0.24em] text-slate-500">Current Question</div>
+            <div class="mt-2 text-lg font-semibold text-ink leading-relaxed">
+              {{ currentQuestion?.questionTitle ?? 'Loading...' }}
+            </div>
+          </div>
+
+          <!-- Direction Badge -->
+          <div class="surface-card p-4">
+            <div class="text-xs uppercase tracking-[0.24em] text-slate-500">Direction</div>
+            <div class="mt-2 font-semibold">{{ direction }}</div>
+          </div>
+
+          <el-button
+            v-if="phase === 'finished'"
+            size="large"
+            class="hard-button-secondary w-full"
+            @click="handleViewDetail"
+          >
+            查看面试详情
+          </el-button>
+        </div>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="paper-panel flex flex-col p-6">
+        <!-- Idle State -->
+        <div v-if="phase === 'idle'" class="flex flex-1 items-center justify-center">
+          <div class="text-center">
+            <div class="text-5xl font-semibold tracking-[-0.03em] text-slate-300">?</div>
+            <p class="mt-4 text-sm leading-6 text-slate-500">
+              选择面试方向并点击"开始面试"，系统会从题库中抽取题目并由 AI 进行评分。
+            </p>
+          </div>
+        </div>
+
+        <!-- Answering State -->
+        <div v-else-if="phase === 'answering'" class="flex flex-1 flex-col">
+          <p class="section-kicker">Your Answer</p>
+          <el-input
+            v-model="answerText"
+            type="textarea"
+            :rows="10"
+            placeholder="请在此输入你的回答。尽量覆盖关键点，结构化表达会获得更高分数。"
+            class="mt-4 flex-1"
+            size="large"
+          />
+          <div class="mt-4 flex gap-3">
+            <el-button
+              :loading="submitting"
+              type="primary"
+              size="large"
+              class="action-button flex-1"
+              @click="handleSubmitAnswer"
+            >
+              提交答案
+            </el-button>
+          </div>
+        </div>
+
+        <!-- Loading AI Score -->
+        <div v-else-if="phase === 'scoring'" class="flex flex-1 items-center justify-center">
+          <div class="text-center">
+            <div class="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-accent border-t-transparent"></div>
+            <p class="mt-4 text-sm text-slate-500">AI 正在评分中，请稍候...</p>
+          </div>
+        </div>
+
+        <!-- Result State: Show score for current question -->
+        <div v-else-if="phase === 'result'" class="space-y-4">
+          <p class="section-kicker">Scoring Response</p>
+
+          <!-- Score Card -->
+          <div
+            class="p-6 text-white shadow-[0_16px_36px_rgba(47,79,157,0.18)]"
+            style="border-radius: var(--radius-lg); background: linear-gradient(180deg, #365ab0 0%, #2f4f9d 100%);"
+          >
+            <div class="text-xs uppercase tracking-[0.24em] text-white/60">AI Score</div>
+            <div class="mt-3 text-5xl font-semibold tracking-[-0.03em]">{{ lastResult?.score ?? '-' }}</div>
+            <p class="mt-4 text-sm leading-7 text-white/80">{{ lastResult?.comment }}</p>
+          </div>
+
+          <!-- Standard Answer & Follow-up -->
+          <div class="grid gap-3 md:grid-cols-2">
+            <div class="surface-card p-4">
+              <div class="font-semibold text-ink">标准答案</div>
+              <p class="mt-2 text-sm leading-6 text-slate-600">{{ lastResult?.standardAnswer || '暂无' }}</p>
+            </div>
+            <div class="surface-card p-4">
+              <div class="font-semibold text-ink">追问</div>
+              <p class="mt-2 text-sm leading-6 text-slate-600">{{ lastResult?.followUp || '无' }}</p>
+            </div>
+          </div>
+
+          <!-- Wrong Book Notice -->
+          <div v-if="lastResult?.addedToWrongBook" class="surface-muted p-4 text-sm text-slate-600">
+            <span class="font-semibold text-ink">已自动加入错题本</span> — 该题得分低于 60 分，已沉淀到错题本供后续复习。
+          </div>
+
+          <!-- Next / Finish -->
+          <div class="flex gap-3">
+            <el-button
+              v-if="lastResult?.hasNextQuestion"
+              type="primary"
+              size="large"
+              class="action-button flex-1"
+              @click="handleNextQuestion"
+            >
+              下一题
+            </el-button>
+            <el-button
+              v-else
+              type="primary"
+              size="large"
+              class="action-button flex-1"
+              @click="handleFinish"
+            >
+              查看面试结果
+            </el-button>
+          </div>
+        </div>
+
+        <!-- Finished State: Summary -->
+        <div v-else-if="phase === 'finished'" class="space-y-4">
+          <p class="section-kicker">Interview Complete</p>
+
+          <div
+            class="p-6 text-white shadow-[0_16px_36px_rgba(47,79,157,0.18)]"
+            style="border-radius: var(--radius-lg); background: linear-gradient(135deg, #365ab0 0%, #233d79 100%);"
+          >
+            <div class="text-xs uppercase tracking-[0.24em] text-white/60">Total Score</div>
+            <div class="mt-3 text-6xl font-semibold tracking-[-0.03em]">{{ detail?.totalScore ?? '-' }}</div>
+            <p class="mt-4 text-sm text-white/80">
+              共 {{ detail?.questionCount ?? 0 }} 题，方向：{{ detail?.direction }}
+            </p>
+          </div>
+
+          <!-- Per-question Results -->
+          <div v-if="detail?.records?.length" class="space-y-3">
+            <div
+              v-for="(record, index) in detail.records"
+              :key="record.questionId"
+              class="surface-card p-4"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0 flex-1">
+                  <div class="text-xs uppercase tracking-[0.22em] text-slate-500">Q{{ index + 1 }}</div>
+                  <div class="mt-1 font-semibold text-ink">{{ record.questionTitle }}</div>
+                  <p class="mt-2 text-sm leading-6 text-slate-600">{{ record.comment || '暂无点评' }}</p>
+                </div>
+                <div
+                  class="shrink-0 text-3xl font-semibold tracking-[-0.03em]"
+                  :class="record.score >= 60 ? 'text-accent' : 'text-red-500'"
+                >
+                  {{ record.score ?? '-' }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex gap-3">
+            <RouterLink to="/wrong" class="hard-button-secondary flex-1 text-center">
+              查看错题本
+            </RouterLink>
+            <el-button type="primary" size="large" class="action-button flex-1" @click="handleNewInterview">
+              再来一场
+            </el-button>
+          </div>
         </div>
       </div>
     </section>
@@ -39,4 +225,123 @@
 </template>
 
 <script setup lang="ts">
+import { ElMessage } from 'element-plus'
+import { computed, ref } from 'vue'
+import {
+  currentQuestionApi,
+  interviewDetailApi,
+  startInterviewApi,
+  submitAnswerApi
+} from '@/api/interview'
+import type { InterviewAnswerResult, InterviewCurrentQuestion, InterviewDetail } from '@/types/api'
+
+type Phase = 'idle' | 'answering' | 'scoring' | 'result' | 'finished'
+
+const directions = ['Spring', 'JVM', 'MySQL', 'Redis', '并发', '微服务']
+
+const phase = ref<Phase>('idle')
+const direction = ref('Spring')
+const questionCount = ref(3)
+const starting = ref(false)
+const submitting = ref(false)
+const answerText = ref('')
+
+const currentQuestion = ref<InterviewCurrentQuestion | null>(null)
+const lastResult = ref<InterviewAnswerResult | null>(null)
+const detail = ref<InterviewDetail | null>(null)
+
+const progressPercent = computed(() => {
+  if (!currentQuestion.value) return 0
+  const { currentIndex, questionCount: total } = currentQuestion.value
+  return Math.round(((currentIndex - 1) / total) * 100)
+})
+
+const handleStart = async () => {
+  starting.value = true
+  try {
+    const response = await startInterviewApi({
+      direction: direction.value,
+      questionCount: questionCount.value
+    })
+    currentQuestion.value = response.data
+    answerText.value = ''
+    lastResult.value = null
+    detail.value = null
+    phase.value = 'answering'
+    ElMessage.success('面试已开始，请回答第一题')
+  } catch {
+    ElMessage.error('启动面试失败，请确认题库中有对应方向的题目')
+  } finally {
+    starting.value = false
+  }
+}
+
+const handleSubmitAnswer = async () => {
+  if (!answerText.value.trim()) {
+    ElMessage.warning('请输入你的答案')
+    return
+  }
+  if (!currentQuestion.value) return
+
+  phase.value = 'scoring'
+  submitting.value = true
+  try {
+    const response = await submitAnswerApi({
+      sessionId: currentQuestion.value.sessionId,
+      questionId: currentQuestion.value.questionId,
+      answer: answerText.value.trim()
+    })
+    lastResult.value = response.data
+    phase.value = 'result'
+  } catch {
+    ElMessage.error('提交答案失败，请重试')
+    phase.value = 'answering'
+  } finally {
+    submitting.value = false
+  }
+}
+
+const handleNextQuestion = async () => {
+  if (!currentQuestion.value) return
+
+  try {
+    const response = await currentQuestionApi(currentQuestion.value.sessionId)
+    currentQuestion.value = response.data
+    answerText.value = ''
+    lastResult.value = null
+    phase.value = 'answering'
+  } catch {
+    ElMessage.error('获取下一题失败')
+  }
+}
+
+const handleFinish = async () => {
+  if (!currentQuestion.value) return
+
+  try {
+    const response = await interviewDetailApi(currentQuestion.value.sessionId)
+    detail.value = response.data
+    phase.value = 'finished'
+  } catch {
+    ElMessage.error('获取面试详情失败')
+  }
+}
+
+const handleViewDetail = async () => {
+  if (!currentQuestion.value) return
+  try {
+    const response = await interviewDetailApi(currentQuestion.value.sessionId)
+    detail.value = response.data
+  } catch {
+    ElMessage.error('获取面试详情失败')
+  }
+}
+
+const handleNewInterview = () => {
+  phase.value = 'idle'
+  currentQuestion.value = null
+  lastResult.value = null
+  detail.value = null
+  answerText.value = ''
+}
 </script>

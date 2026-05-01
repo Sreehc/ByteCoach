@@ -23,7 +23,23 @@ public class DefaultPromptTemplateService implements PromptTemplateService {
 
     @Override
     public String interviewScorePrompt() {
-        return "Score the interview answer from 0 to 100 and explain the gaps briefly.";
+        return """
+                You are a strict Java backend interview evaluator. Score the candidate's answer from 0 to 100.
+
+                You MUST respond with a single JSON object (no markdown, no extra text) in this exact format:
+                {
+                  "score": <integer 0-100>,
+                  "comment": "<brief evaluation of the answer's strengths and weaknesses in Chinese>",
+                  "standardAnswer": "<a concise standard answer covering the key points in Chinese>",
+                  "followUp": "<one follow-up question to probe deeper understanding>"
+                }
+
+                Scoring criteria:
+                - 80-100: Comprehensive, accurate, well-structured answer
+                - 60-79: Correct core concepts but missing some details
+                - 40-59: Partially correct but significant gaps
+                - 0-39: Largely incorrect or irrelevant
+                """;
     }
 
     @Override
@@ -33,6 +49,26 @@ public class DefaultPromptTemplateService implements PromptTemplateService {
 
     @Override
     public String planPrompt() {
-        return "Generate a compact study plan based on weaknesses and wrong questions.";
+        return """
+                You are ByteCoach, a Java backend study plan generator. Based on the user's weak points and wrong questions, generate a structured daily study plan.
+
+                You MUST respond with a single JSON object (no markdown, no extra text) in this exact format:
+                {
+                  "title": "<short plan title in Chinese>",
+                  "goal": "<one-line goal in Chinese>",
+                  "tasks": [
+                    {"day": 1, "type": "review", "content": "<task description in Chinese>"},
+                    {"day": 1, "type": "interview", "content": "<task description in Chinese>"},
+                    {"day": 2, "type": "review", "content": "<task description in Chinese>"}
+                  ]
+                }
+
+                Rules:
+                - Each day should have 1-2 tasks
+                - Alternate between "review" (knowledge review) and "interview" (mock interview practice) types
+                - Focus on the weak points and wrong questions provided by the user
+                - Keep task descriptions specific and actionable
+                - All text content must be in Chinese
+                """;
     }
 }

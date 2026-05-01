@@ -113,3 +113,64 @@ export interface ChatSendResult {
   answer: string
   references: KnowledgeReferenceItem[]
 }
+
+export interface InterviewCurrentQuestion {
+  sessionId: number
+  currentIndex: number
+  questionCount: number
+  questionId: number
+  questionTitle: string
+}
+
+export interface InterviewAnswerResult {
+  score: number
+  comment: string
+  standardAnswer: string
+  followUp: string
+  addedToWrongBook: boolean
+  hasNextQuestion: boolean
+}
+
+export interface InterviewRecordItem {
+  questionId: number
+  questionTitle: string
+  userAnswer: string
+  score: number
+  comment: string
+  standardAnswer: string
+  followUp: string
+}
+
+export interface InterviewDetail {
+  sessionId: number
+  direction: string
+  status: string
+  totalScore: number
+  questionCount: number
+  records: InterviewRecordItem[]
+}
+
+export interface WrongQuestionItem {
+  id: number
+  questionId: number
+  title: string
+  masteryLevel: 'not_started' | 'reviewing' | 'mastered'
+  standardAnswer?: string
+  errorReason?: string
+}
+
+export interface StudyPlanItem {
+  id: number
+  title: string
+  goal: string
+  status: string
+  tasks: StudyPlanTaskItem[]
+}
+
+export interface StudyPlanTaskItem {
+  id: number
+  taskDate: string
+  taskType: string
+  content: string
+  status: 'todo' | 'done'
+}

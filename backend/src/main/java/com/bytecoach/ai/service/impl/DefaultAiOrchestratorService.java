@@ -12,11 +12,15 @@ import com.bytecoach.interview.dto.InterviewAnswerRequest;
 import com.bytecoach.interview.vo.InterviewAnswerVO;
 import com.bytecoach.knowledge.service.KnowledgeRetrievalService;
 import com.bytecoach.knowledge.vo.KnowledgeSearchVO;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DefaultAiOrchestratorService implements AiOrchestratorService {
@@ -24,6 +28,7 @@ public class DefaultAiOrchestratorService implements AiOrchestratorService {
     private final LlmGateway llmGateway;
     private final PromptTemplateService promptTemplateService;
     private final KnowledgeRetrievalService knowledgeRetrievalService;
+    private final ObjectMapper objectMapper;
 
     @Override
     public ChatSendVO answerChat(ChatSendRequest request) {
@@ -49,25 +54,102 @@ public class DefaultAiOrchestratorService implements AiOrchestratorService {
 
     @Override
     public InterviewAnswerVO scoreInterviewAnswer(InterviewAnswerRequest request) {
-        AiChatResponse scoreResponse;
+        String userPrompt = buildScoreUserPrompt(request);
+        String rawContent;
+
         try {
-            scoreResponse = llmGateway.chatCompletion(AiChatRequest.builder()
+            AiChatResponse scoreResponse = llmGateway.chatCompletion(AiChatRequest.builder()
                     .systemPrompt(promptTemplateService.interviewScorePrompt())
-                    .userPrompt("QuestionId=" + request.getQuestionId() + "\nAnswer=" + request.getAnswer())
+                    .userPrompt(userPrompt)
                     .references(List.of())
                     .build());
+            rawContent = scoreResponse.getContent();
         } catch (RuntimeException exception) {
-            scoreResponse = AiChatResponse.builder().content("").raw("fallback").build();
+            log.warn("LLM call failed for interview scoring, using fallback: {}", exception.getMessage());
+            rawContent = "";
         }
-        String comment = scoreResponse.getContent().isBlank()
-                ? "评分结果占位：后续在此处解析结构化输出。"
-                : scoreResponse.getContent();
+
+        return parseScoreResponse(rawContent, request);
+    }
+
+    private String buildScoreUserPrompt(InterviewAnswerRequest request) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("## Question\n");
+        if (request.getQuestionTitle() != null) {
+            sb.append(request.getQuestionTitle());
+        } else {
+            sb.append("Question ID: ").append(request.getQuestionId());
+        }
+        sb.append("\n\n## Candidate's Answer\n").append(request.getAnswer());
+
+        if (request.getStandardAnswer() != null && !request.getStandardAnswer().isBlank()) {
+            sb.append("\n\n## Reference Standard Answer\n").append(request.getStandardAnswer());
+        }
+        if (request.getScoreStandard() != null && !request.getScoreStandard().isBlank()) {
+            sb.append("\n\n## Scoring Criteria\n").append(request.getScoreStandard());
+        }
+        return sb.toString();
+    }
+
+    private InterviewAnswerVO parseScoreResponse(String rawContent, InterviewAnswerRequest request) {
+        if (rawContent == null || rawContent.isBlank()) {
+            return fallbackScoreResult(request);
+        }
+
+        try {
+            // Try to extract JSON from the response (LLM may wrap it in markdown code blocks)
+            String jsonContent = extractJson(rawContent);
+            JsonNode node = objectMapper.readTree(jsonContent);
+
+            BigDecimal score = node.has("score")
+                    ? new BigDecimal(node.get("score").asInt())
+                    : new BigDecimal("60");
+            String comment = node.has("comment") ? node.get("comment").asText() : "评分解析完成。";
+            String standardAnswer = node.has("standardAnswer") ? node.get("standardAnswer").asText()
+                    : (request.getStandardAnswer() != null ? request.getStandardAnswer() : "暂无标准答案。");
+            String followUp = node.has("followUp") ? node.get("followUp").asText() : "能否进一步展开说明？";
+
+            // Clamp score to 0-100
+            if (score.compareTo(BigDecimal.ZERO) < 0) score = BigDecimal.ZERO;
+            if (score.compareTo(new BigDecimal("100")) > 0) score = new BigDecimal("100");
+
+            return InterviewAnswerVO.builder()
+                    .score(score)
+                    .comment(comment)
+                    .standardAnswer(standardAnswer)
+                    .followUp(followUp)
+                    .addedToWrongBook(false) // will be set by InterviewServiceImpl
+                    .hasNextQuestion(true)   // will be set by InterviewServiceImpl
+                    .build();
+        } catch (Exception e) {
+            log.warn("Failed to parse LLM score response as JSON, using fallback: {}", e.getMessage());
+            return fallbackScoreResult(request);
+        }
+    }
+
+    private String extractJson(String content) {
+        String trimmed = content.trim();
+        // Strip markdown code fences if present
+        if (trimmed.startsWith("```")) {
+            int firstNewline = trimmed.indexOf('\n');
+            int lastFence = trimmed.lastIndexOf("```");
+            if (firstNewline > 0 && lastFence > firstNewline) {
+                trimmed = trimmed.substring(firstNewline + 1, lastFence).trim();
+            }
+        }
+        return trimmed;
+    }
+
+    private InterviewAnswerVO fallbackScoreResult(InterviewAnswerRequest request) {
+        String standardAnswer = request.getStandardAnswer() != null
+                ? request.getStandardAnswer()
+                : "暂无标准答案，请参考题目相关知识点。";
         return InterviewAnswerVO.builder()
-                .score(new BigDecimal("78"))
-                .comment(comment)
-                .standardAnswer("标准答案占位：后续回填题库标准答案。")
-                .followUp("如果使用 CGLIB，它与 JDK 动态代理的适用边界是什么？")
-                .addedToWrongBook(true)
+                .score(new BigDecimal("60"))
+                .comment("AI 评分暂时不可用，已给出默认分数。请稍后重试。")
+                .standardAnswer(standardAnswer)
+                .followUp("能否从另一个角度谈谈你的理解？")
+                .addedToWrongBook(false)
                 .hasNextQuestion(true)
                 .build();
     }

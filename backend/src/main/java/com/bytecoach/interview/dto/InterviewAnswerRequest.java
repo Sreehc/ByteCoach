@@ -14,5 +14,10 @@ public class InterviewAnswerRequest {
 
     @NotBlank(message = "cannot be blank")
     private String answer;
+
+    /** Populated by service layer before passing to AI — not from client */
+    private String questionTitle;
+    private String standardAnswer;
+    private String scoreStandard;
 }
 
