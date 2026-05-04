@@ -1,5 +1,180 @@
 # 数据库设计
 
-> 完整建表语句请参考 `sql/init.sql`，初始化数据请参考 `sql/initdata.sql`。
+> 完整建表语句：`sql/init.sql`
+> 初始化数据：`sql/initdata.sql`
 >
-> 本目录用于补充 ER 图、字段说明、索引策略、数据字典等。
+> 字符集：utf8mb4，排序规则：utf8mb4_unicode_ci
+
+## 表清单
+
+共 16 张表，按功能模块分组：
+
+| 模块 | 表名 | 说明 |
+|------|------|------|
+| 用户 | user | 用户账号 |
+| 认证 | login_device | 登录设备 |
+| 认证 | login_log | 登录日志 |
+| 分类 | category | 分类体系 |
+| 题库 | question | 题目 |
+| 面试 | interview_session | 面试会话 |
+| 面试 | interview_record | 面试记录（每题） |
+| 面试 | voice_record | 语音记录 |
+| 错题 | wrong_question | 错题（含 SM-2 字段） |
+| 复习 | review_log | 复习记录 |
+| 计划 | study_plan | 学习计划 |
+| 计划 | study_plan_task | 计划任务 |
+| 问答 | chat_session | 聊天会话 |
+| 问答 | chat_message | 聊天消息 |
+| 知识 | knowledge_doc | 知识文档 |
+| 知识 | knowledge_chunk | 知识分片 |
+| 社区 | community_question | 社区问题 |
+| 社区 | community_answer | 社区回答 |
+| 社区 | community_vote | 社区投票 |
+| 统计 | user_stats | 用户统计 |
+| 通知 | notification | 通知 |
+
+---
+
+## 核心表结构
+
+### user（用户表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT PK | 雪花 ID |
+| username | VARCHAR(64) UNIQUE | 用户名 |
+| password | VARCHAR(255) | BCrypt 加密密码 |
+| nickname | VARCHAR(64) | 昵称 |
+| avatar | VARCHAR(255) | 头像 URL |
+| email | VARCHAR(128) | 邮箱 |
+| role | VARCHAR(32) | 角色：USER / ADMIN |
+| status | TINYINT | 状态：1=正常, 0=封禁 |
+| totp_secret | VARCHAR(64) | TOTP 密钥（AES 加密） |
+| totp_enabled | TINYINT(1) | 是否启用两步验证 |
+| recovery_codes | TEXT | 恢复码 JSON（AES 加密） |
+| last_login_time | DATETIME | 最后登录时间 |
+
+### question（题目表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT PK | 雪花 ID |
+| title | VARCHAR(255) | 题目标题 |
+| category_id | BIGINT | 分类 ID |
+| difficulty | VARCHAR(32) | 难度：easy / medium / hard |
+| tags | VARCHAR(255) | 标签（逗号分隔） |
+| standard_answer | TEXT | 标准答案 |
+| score_standard | TEXT | 评分标准 |
+
+### wrong_question（错题表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT PK | 雪花 ID |
+| user_id | BIGINT | 用户 ID |
+| question_id | BIGINT | 题目 ID |
+| source_type | VARCHAR(32) | 来源：interview / chat |
+| mastery_level | VARCHAR(32) | 掌握程度：not_started / reviewing / mastered |
+| ease_factor | DECIMAL(4,2) | SM-2 EF 值（初始 2.50，最低 1.30） |
+| interval_days | INT | 当前复习间隔（天） |
+| next_review_date | DATE | 下次复习日期 |
+| streak | INT | 连续成功次数 |
+
+UNIQUE KEY (user_id, question_id) — 每个用户每道题只有一条错题记录。
+
+### review_log（复习记录表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT PK | 雪花 ID |
+| user_id | BIGINT | 用户 ID |
+| wrong_question_id | BIGINT | 错题 ID |
+| rating | INT | 评分 1-4（1=重来 2=困难 3=良好 4=简单） |
+| response_time_ms | INT | 复习耗时（毫秒） |
+| ease_factor_before | DECIMAL(4,2) | 复习前 EF |
+| interval_before | INT | 复习前间隔 |
+| ease_factor_after | DECIMAL(4,2) | 复习后 EF |
+| interval_after | INT | 复习后间隔 |
+
+### login_device（登录设备表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT PK | 雪花 ID |
+| user_id | BIGINT | 用户 ID |
+| device_fingerprint | VARCHAR(128) | 浏览器/设备指纹 |
+| device_name | VARCHAR(128) | 设备名（如 Chrome on Windows） |
+| ip | VARCHAR(64) | IP 地址 |
+| city | VARCHAR(64) | IP 归属城市 |
+| status | TINYINT | 1=活跃, 0=已撤销 |
+
+### login_log（登录日志表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT PK | 雪花 ID |
+| user_id | BIGINT | 用户 ID |
+| ip | VARCHAR(64) | IP 地址 |
+| city | VARCHAR(64) | IP 归属城市 |
+| device | VARCHAR(128) | 设备名称 |
+| status | TINYINT | 1=成功, 0=失败 |
+| fail_reason | VARCHAR(128) | 失败原因 |
+
+### community_question / community_answer（社区表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| status | VARCHAR(32) | 问题/回答状态：pending / approved / rejected |
+
+发布后默认 `pending`，管理员审核通过后变为 `approved` 才对外可见。
+
+---
+
+## 索引策略
+
+### 常用查询索引
+
+- `wrong_question(user_id, next_review_date)` — 每日复习查询
+- `notification(user_id, is_read)` — 未读通知查询
+- `notification(user_id, create_time DESC)` — 通知列表排序
+- `login_log(user_id)` + `login_log(create_time)` — 登录日志查询
+- `community_question(status)` — 审核队列查询
+
+### 唯一约束
+
+- `user(username)` — 用户名唯一
+- `wrong_question(user_id, question_id)` — 每用户每题唯一错题
+- `community_vote(user_id, target_type, target_id)` — 每用户对每个目标只能投票一次
+
+---
+
+## Redis 使用
+
+| Key 模式 | 用途 | TTL |
+|----------|------|-----|
+| `jwt:blacklist:{token}` | 登出 Token 黑名单 | Token 剩余有效期 |
+| `device:token:{userId}:{fingerprint}` | 设备撤销黑名单 | 7 天 |
+| `login:lock:{userId}` | 登录锁定 | 30 分钟 |
+| `login:fail:{userId}` | 连续失败计数 | 5 分钟 |
+| `captcha:{key}` | 图形验证码 | 5 分钟 |
+| `2fa:setup:{userId}` | 2FA 设置临时密钥 | 10 分钟 |
+| `2fa:temp:{token}` | 2FA 登录临时 Token | 5 分钟 |
+| `bytecoach_chunks:{vectorId}` | 知识库向量 | 持久 |
+| `{各种}:cache:*` | 业务缓存 | 按配置 |
+
+---
+
+## SM-2 算法说明
+
+错题表中的 SM-2 字段用于间隔复习调度：
+
+- **ease_factor (EF)**：难度系数，初始 2.50，最低 1.30。复习评分越高，EF 越大，间隔增长越快。
+- **interval_days**：当前复习间隔（天）。首次复习后为 1 天，之后按公式增长。
+- **next_review_date**：下次复习日期 = 上次复习日期 + interval_days。
+- **streak**：连续成功次数（rating >= 3）。rating < 3 时归零。
+
+计算公式：
+- 首次：interval = 1
+- 第二次：interval = 6
+- 之后：interval = interval × EF
+- EF 调整：EF = EF + (0.1 - (4-rating) × (0.08 + (4-rating) × 0.02))
