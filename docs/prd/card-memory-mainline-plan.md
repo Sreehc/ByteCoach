@@ -199,7 +199,9 @@ v1 采用兼容演进，实际落地为：
 
 ### 方向三：知识库转为卡片来源
 
-**状态：未开始**
+**状态：已完成**
+
+> 本次方向三延续方向二的兼容演进策略：继续采用“一文档一 deck”，同一文档已生成时默认进入或激活现有 deck，不做覆盖重生成、不做追加生成，也不引入手动 deck CRUD。
 
 ### 目标
 
@@ -209,26 +211,27 @@ v1 采用兼容演进，实际落地为：
 
 #### 前端
 
-- `frontend/src/pages/knowledge/KnowledgePage.vue`
+- [x] `frontend/src/pages/knowledge/KnowledgePage.vue`
   - 每份文档突出“生成卡片”按钮。
   - 展示文档已生成卡片数量、所属牌组、最近生成时间。
   - 支持选择生成类型：概念卡、问答卡、场景题卡、易混淆点卡。
 
-- `frontend/src/pages/cards/CardsPage.vue`
+- [x] `frontend/src/pages/cards/CardsPage.vue`
   - 支持从知识库跳转后直接进入“生成卡片确认页”。
-  - 允许用户选择生成数量、难度、牌组和复习天数。
+  - 允许用户选择生成数量、难度、复习天数和卡片类型。
+  - 若当前文档已有 deck，则展示已有 deck 摘要并提供进入/激活入口，而不是重复生成。
 
 #### 后端
 
-- `backend/src/main/java/com/bytecoach/knowledge/service`
+- [x] `backend/src/main/java/com/bytecoach/knowledge/service`
   - 文档解析和分片能力继续复用。
-  - 为卡片生成提供文档 chunk 和来源引用。
+  - 为卡片生成提供文档 chunk 和来源引用，并在文档列表中返回 deck 统计。
 
-- `backend/src/main/java/com/bytecoach/cards/service`
+- [x] `backend/src/main/java/com/bytecoach/cards/service`
   - 新增文档到卡片的生成服务。
   - 生成后保存来源文档 ID、chunk ID、引用片段，方便用户追溯。
 
-- `backend/src/main/java/com/bytecoach/ai/service`
+- [x] `backend/src/main/java/com/bytecoach/ai/service`
   - 增加卡片生成 Prompt 模板。
   - 输出结构化 JSON，避免直接解析自然语言。
 
@@ -246,9 +249,9 @@ v1 采用兼容演进，实际落地为：
 
 ### 验收标准
 
-- 上传一份资料后，用户能一键生成一组可学习卡片。
-- 卡片答案可以追溯到原文来源。
-- 卡片生成质量足够用于直接学习，而不是需要用户大量手工修订。
+- [x] 上传一份资料后，用户能一键生成一组可学习卡片。
+- [x] 卡片答案可以追溯到原文来源。
+- [x] 卡片生成质量足够用于直接学习，而不是需要用户大量手工修订。
 
 ---
 
