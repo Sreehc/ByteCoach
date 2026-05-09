@@ -302,6 +302,11 @@ v1 采用兼容演进，实际落地为：
 
 ### 方向五：面试降级为诊断与卡片生成入口
 
+**状态：已完成（v1 兼容演进）**
+
+> 本次方向五延续方向二到方向四的兼容演进方案：不新建独立 `memory_*` 模型，而是在现有 `knowledge_card_task / knowledge_card / knowledge_card_log` 上新增 `interview_auto` 来源，并将面试低分题沉淀为用户级单一只读 deck。
+> 偏差说明：本次采用“全用户一组面试诊断卡片 deck”，不是按场次或方向拆分多个 interview deck；自动生成不会抢占当前 deck，只有用户手动点击“加入今日卡片”时才切换；错题 deck 与 interview deck 允许重复语义内容并存，不做跨来源去重融合。
+
 ### 目标
 
 面试不再是产品主线，而是帮助用户发现薄弱点、生成高价值卡片的诊断工具。
@@ -310,32 +315,41 @@ v1 采用兼容演进，实际落地为：
 
 #### 前端
 
-- `frontend/src/pages/interview/InterviewPage.vue`
+- [x] `frontend/src/pages/interview/InterviewPage.vue`
   - 页面文案从“开始模拟面试”调整为“做一次面试诊断”。
   - 说明诊断结果会生成薄弱点卡片。
 
-- `frontend/src/pages/interview/InterviewDetailPage.vue`
+- [x] `frontend/src/pages/interview/InterviewDetailPage.vue`
   - 增加“生成复习卡片”或“加入今日卡片”按钮。
   - 对低分题展示推荐卡片内容。
 
-- `frontend/src/pages/interview/InterviewHistoryPage.vue`
+- [x] `frontend/src/pages/interview/InterviewHistoryPage.vue`
   - 标记每场面试是否已生成卡片。
   - 支持从历史面试补生成卡片。
 
 #### 后端
 
-- `backend/src/main/java/com/bytecoach/interview/service/impl/InterviewServiceImpl.java`
+- [x] `backend/src/main/java/com/bytecoach/interview/service/impl/InterviewServiceImpl.java`
   - 低分题不只进入错题本，也生成面试卡片。
   - 卡片内容包括问题、用户答案问题点、标准答案、追问点。
 
-- `backend/src/main/java/com/bytecoach/cards/service`
+- [x] `backend/src/main/java/com/bytecoach/cards/service`
   - 新增面试记录到卡片的生成逻辑。
+  - 新增 `POST /api/interview/{sessionId}/cards/generate` 与 `POST /api/interview/{sessionId}/cards/activate`。
+
+#### 实际落地口径
+
+- [x] 面试完成后，低分题继续进入错题本，同时自动同步到 `interview_auto` deck。
+- [x] `interview_auto` deck 为用户级单一只读 deck，标题固定为“面试诊断卡片”。
+- [x] 历史补生成与自动生成都按 `interview_record.id` 去重，不重复插卡。
+- [x] 详情页和历史页可直接触发“补生成 / 加入今日卡片”。
+- [x] 统一复习中心中的 `interview_card` 过滤升级为可识别真实 `interview_record` 来源卡片。
 
 ### 验收标准
 
-- 用户完成一场面试后，能得到可复习的卡片集合。
-- 面试入口不再抢占首页主任务。
-- 面试结果能直接沉淀到卡片主线。
+- [x] 用户完成一场面试后，能得到可复习的卡片集合。
+- [x] 面试入口不再抢占首页主任务。
+- [x] 面试结果能直接沉淀到卡片主线。
 
 ---
 
