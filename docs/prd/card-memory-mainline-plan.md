@@ -355,6 +355,11 @@ v1 采用兼容演进，实际落地为：
 
 ### 方向六：数据看板改为记忆成长看板
 
+**状态：已完成（v1 兼容演进）**
+
+> 本次方向六已按“扩现有 analytics 接口 + 新增 `daily_memory_snapshot`”落地。首页继续围绕今日卡片任务展开，分析页主叙事切到记忆完成率、复习负债、掌握增长和分类掌握度；面试趋势与平均分保留为辅助模块，不再主导首页和分析页。
+> 偏差说明：本次仍复用 `/api/analytics/trend`、`/api/analytics/efficiency`、`/api/analytics/insights`，没有新开独立记忆分析端点；历史负债趋势通过 `daily_memory_snapshot` 与查询前补齐策略支撑，属于兼容演进版本。
+
 ### 目标
 
 数据分析从“面试表现统计”转向“记忆进度与掌握度增长”，帮助用户知道自己是否坚持、是否掌握、是否有复习负债。
@@ -363,31 +368,42 @@ v1 采用兼容演进，实际落地为：
 
 #### 前端
 
-- `frontend/src/pages/dashboard/DashboardPage.vue`
+- [x] `frontend/src/pages/dashboard/DashboardPage.vue`
   - 首屏展示今日卡片任务。
   - 增加连续学习天数和每日完成状态。
 
-- `frontend/src/pages/dashboard/DashboardWeakPoints.vue`
+- [x] `frontend/src/pages/dashboard/DashboardWeakPoints.vue`
   - 从弱点分类展示调整为分类掌握度。
   - 展示每个分类的待复习量和掌握卡片数。
 
-- `frontend/src/pages/analytics/AnalyticsPage.vue`
+- [x] `frontend/src/pages/analytics/AnalyticsPage.vue`
   - 增加记忆曲线、复习负债趋势、分类掌握度、评分分布。
   - 面试平均分作为辅助指标保留。
 
 #### 后端
 
-- `backend/src/main/java/com/bytecoach/dashboard`
+- [x] `backend/src/main/java/com/bytecoach/dashboard`
   - 聚合今日卡片、复习负债、连续天数、掌握卡片数。
 
-- `backend/src/main/java/com/bytecoach/analytics`
+- [x] `backend/src/main/java/com/bytecoach/analytics`
   - 新增卡片完成率、复习完成率、遗忘率、EF 趋势、分类掌握度。
+
+#### 实际落地口径
+
+- [x] 首页继续以“今日记忆任务”为主入口，不再把面试趋势作为主动作。
+- [x] `DashboardWeakPoints` 已切换为分类掌握度展示，核心字段为待复习量、已掌握卡片数、掌握率。
+- [x] `AnalyticsPage` 第一主图改为记忆趋势，展示完成率、复习负债、掌握增长。
+- [x] `EF 趋势`、`遗忘率`、`评分分布`、`分类掌握度` 升级为核心分析区块。
+- [x] 面试平均分和面试趋势保留为辅助模块，位置下沉。
+- [x] 新增 `daily_memory_snapshot` 表，用于承载全局记忆快照和趋势查询。
+- [x] `/api/dashboard/overview` 已按全局卡片池聚合今日卡片、连续天数、复习负债和已掌握卡片数。
+- [x] `/api/analytics/trend`、`/api/analytics/efficiency`、`/api/analytics/insights` 已扩展为记忆导向语义。
 
 ### 验收标准
 
-- 用户能清楚看到今天是否完成、最近是否稳定坚持。
-- 用户能看到哪些分类掌握弱、哪些卡片逾期。
-- 数据看板能反向驱动用户继续完成卡片。
+- [x] 用户能清楚看到今天是否完成、最近是否稳定坚持。
+- [x] 用户能看到哪些分类掌握弱、哪些卡片逾期。
+- [x] 数据看板能反向驱动用户继续完成卡片。
 
 ---
 
