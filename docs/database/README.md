@@ -7,7 +7,7 @@
 
 ## 表清单
 
-共 23 张表，按功能模块分组：
+共 25 张表，按功能模块分组：
 
 | 模块 | 表名 | 说明 |
 |------|------|------|
@@ -25,6 +25,8 @@
 | 计划 | study_plan_task | 计划任务 |
 | 简历 | resume_file | 简历文件 |
 | 简历 | resume_project | 简历项目 |
+| 投递 | job_application | 岗位投递主记录 |
+| 投递 | job_application_event | 投递事件流 |
 | 问答 | chat_session | 聊天会话 |
 | 问答 | chat_message | 聊天消息 |
 | 知识 | knowledge_doc | 知识文档 |
@@ -167,6 +169,39 @@ UNIQUE KEY (user_id, question_id) — 每个用户每道题只有一条错题记
 | project_summary | VARCHAR(500) | 项目摘要 |
 | follow_up_questions_json | JSON | 项目追问列表 |
 | risk_hints | VARCHAR(500) | 风险提示（逗号分隔） |
+
+### job_application（岗位投递表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT PK | 雪花 ID |
+| user_id | BIGINT | 用户 ID |
+| resume_file_id | BIGINT | 绑定简历 ID |
+| company | VARCHAR(128) | 公司名称 |
+| job_title | VARCHAR(128) | 岗位名称 |
+| city | VARCHAR(64) | 城市 |
+| source | VARCHAR(64) | 渠道来源 |
+| jd_text | TEXT | JD 原文 |
+| status | VARCHAR(32) | 状态：saved / applied / written / interview / offer / rejected |
+| match_score | DECIMAL(5,2) | 简历与 JD 匹配度 |
+| jd_keywords | VARCHAR(500) | 识别出的 JD 关键词（逗号分隔） |
+| missing_keywords | VARCHAR(500) | 待补关键词（逗号分隔） |
+| analysis_summary | VARCHAR(1000) | JD 分析摘要 |
+| apply_date | DATE | 实际投递日期 |
+| next_step_date | DATE | 下一节点日期 |
+
+### job_application_event（投递事件表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT PK | 雪花 ID |
+| application_id | BIGINT | 所属投递 ID |
+| user_id | BIGINT | 用户 ID |
+| event_type | VARCHAR(32) | 事件类型：status_change / interview / review / note / analysis |
+| title | VARCHAR(255) | 事件标题 |
+| content | TEXT | 事件内容 |
+| event_time | DATETIME | 事件发生时间 |
+| result | VARCHAR(255) | 结果摘要 |
 
 ### login_device（登录设备表）
 
