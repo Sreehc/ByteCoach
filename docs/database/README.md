@@ -7,7 +7,7 @@
 
 ## 表清单
 
-共 25 张表，按功能模块分组：
+共 27 张表，按功能模块分组：
 
 | 模块 | 表名 | 说明 |
 |------|------|------|
@@ -27,6 +27,8 @@
 | 简历 | resume_project | 简历项目 |
 | 投递 | job_application | 岗位投递主记录 |
 | 投递 | job_application_event | 投递事件流 |
+| AI 治理 | ai_call_log | AI 调用日志 |
+| AI 治理 | system_config | 系统配置与提示词覆盖 |
 | 问答 | chat_session | 聊天会话 |
 | 问答 | chat_message | 聊天消息 |
 | 知识 | knowledge_doc | 知识文档 |
@@ -202,6 +204,34 @@ UNIQUE KEY (user_id, question_id) — 每个用户每道题只有一条错题记
 | content | TEXT | 事件内容 |
 | event_time | DATETIME | 事件发生时间 |
 | result | VARCHAR(255) | 结果摘要 |
+
+### ai_call_log（AI 调用日志表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT PK | 雪花 ID |
+| user_id | BIGINT | 触发用户 ID |
+| provider | VARCHAR(64) | 模型服务商 / 网关标识 |
+| model | VARCHAR(128) | 模型名称 |
+| call_type | VARCHAR(32) | 调用类型：chat / stream / embedding |
+| scene | VARCHAR(128) | 业务场景，例如 `chat.answer.rag` |
+| input_tokens | INT | 估算输入 token |
+| output_tokens | INT | 估算输出 token |
+| latency_ms | BIGINT | 调用耗时（毫秒） |
+| success | TINYINT | 是否成功：1 / 0 |
+| error_message | VARCHAR(1000) | 失败原因摘要 |
+
+### system_config（系统配置表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT PK | 雪花 ID |
+| config_group | VARCHAR(64) | 配置分组：llm / embedding / prompt |
+| config_key | VARCHAR(128) UNIQUE | 配置键 |
+| config_value | TEXT | 配置值 |
+| value_type | VARCHAR(32) | 值类型：text / number / boolean / textarea |
+| description | VARCHAR(500) | 配置说明 |
+| enabled | TINYINT | 是否启用：1 / 0 |
 
 ### login_device（登录设备表）
 
