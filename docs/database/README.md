@@ -7,7 +7,7 @@
 
 ## 表清单
 
-共 16 张表，按功能模块分组：
+共 23 张表，按功能模块分组：
 
 | 模块 | 表名 | 说明 |
 |------|------|------|
@@ -23,6 +23,8 @@
 | 复习 | review_log | 复习记录 |
 | 计划 | study_plan | 学习计划 |
 | 计划 | study_plan_task | 计划任务 |
+| 简历 | resume_file | 简历文件 |
+| 简历 | resume_project | 简历项目 |
 | 问答 | chat_session | 聊天会话 |
 | 问答 | chat_message | 聊天消息 |
 | 知识 | knowledge_doc | 知识文档 |
@@ -96,6 +98,76 @@ UNIQUE KEY (user_id, question_id) — 每个用户每道题只有一条错题记
 | ease_factor_after | DECIMAL(4,2) | 复习后 EF |
 | interval_after | INT | 复习后间隔 |
 
+### study_plan（学习计划表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT PK | 雪花 ID |
+| user_id | BIGINT | 用户 ID |
+| title | VARCHAR(128) | 计划标题 |
+| duration_days | INT | 计划周期：7 / 14 / 30 |
+| focus_direction | VARCHAR(64) | 重点方向 |
+| target_role | VARCHAR(128) | 目标岗位 |
+| tech_stack | VARCHAR(255) | 技术范围 |
+| weak_points | VARCHAR(255) | 弱项标签（逗号分隔） |
+| review_suggestion | VARCHAR(500) | 复盘建议 |
+| status | VARCHAR(32) | 状态：active / completed / archived |
+| start_date | DATE | 开始日期 |
+| end_date | DATE | 结束日期 |
+| current_day | INT | 当前执行天数 |
+| progress_rate | DECIMAL(5,2) | 完成进度百分比 |
+
+### study_plan_task（学习计划任务表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT PK | 雪花 ID |
+| plan_id | BIGINT | 所属计划 ID |
+| user_id | BIGINT | 用户 ID |
+| day_index | INT | 第几天任务 |
+| task_date | DATE | 任务日期 |
+| module | VARCHAR(32) | 模块：question / chat / review / interview |
+| title | VARCHAR(128) | 任务标题 |
+| description | VARCHAR(500) | 任务说明 |
+| action_path | VARCHAR(128) | 前端跳转路径 |
+| estimated_minutes | INT | 预估时长 |
+| priority | VARCHAR(16) | 优先级：high / medium / low |
+| status | VARCHAR(32) | 状态：pending / completed |
+| completed_at | DATETIME | 完成时间 |
+
+### resume_file（简历文件表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT PK | 雪花 ID |
+| user_id | BIGINT | 用户 ID |
+| title | VARCHAR(128) | 简历标题 |
+| file_url | VARCHAR(255) | 存储地址 |
+| file_type | VARCHAR(16) | 文件类型：pdf / doc / docx |
+| parse_status | VARCHAR(32) | 解析状态：pending / parsed / failed |
+| raw_text | LONGTEXT | 提取后的全文 |
+| summary | VARCHAR(500) | 解析摘要 |
+| skills | VARCHAR(255) | 技能标签（逗号分隔） |
+| education | VARCHAR(500) | 教育背景摘要 |
+| self_intro | TEXT | 推荐自我介绍 |
+| interview_resume_text | TEXT | 面试版简历提纲 |
+
+### resume_project（简历项目表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT PK | 雪花 ID |
+| resume_file_id | BIGINT | 所属简历 ID |
+| user_id | BIGINT | 用户 ID |
+| project_name | VARCHAR(128) | 项目名称 |
+| role_name | VARCHAR(128) | 角色 / 岗位描述 |
+| tech_stack | VARCHAR(255) | 项目技术栈 |
+| responsibility | TEXT | 主要职责 |
+| achievement | TEXT | 结果与成果 |
+| project_summary | VARCHAR(500) | 项目摘要 |
+| follow_up_questions_json | JSON | 项目追问列表 |
+| risk_hints | VARCHAR(500) | 风险提示（逗号分隔） |
+
 ### login_device（登录设备表）
 
 | 字段 | 类型 | 说明 |
@@ -159,7 +231,7 @@ UNIQUE KEY (user_id, question_id) — 每个用户每道题只有一条错题记
 | `captcha:{key}` | 图形验证码 | 5 分钟 |
 | `2fa:setup:{userId}` | 2FA 设置临时密钥 | 10 分钟 |
 | `2fa:temp:{token}` | 2FA 登录临时 Token | 5 分钟 |
-| `bytecoach_chunks:{vectorId}` | 知识库向量 | 持久 |
+| `offerpilot_chunks:{vectorId}` | 知识库向量 | 持久 |
 | `{各种}:cache:*` | 业务缓存 | 按配置 |
 
 ---
