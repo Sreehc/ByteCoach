@@ -1,317 +1,265 @@
 # 数据库设计
 
 > 完整建表语句：`sql/init.sql`
-> 初始化数据：`sql/initdata.sql`
 >
-> 字符集：utf8mb4，排序规则：utf8mb4_unicode_ci
+> 本文档以当前 SQL 为准，描述 OfferPilot 的正式数据模型边界。
 
-## 表清单
+## 总览
 
-共 27 张表，按功能模块分组：
+当前初始化脚本共包含 32 张表，按业务域拆分如下：
 
 | 模块 | 表名 | 说明 |
 |------|------|------|
-| 用户 | user | 用户账号 |
-| 认证 | login_device | 登录设备 |
-| 认证 | login_log | 登录日志 |
-| 分类 | category | 分类体系 |
-| 题库 | question | 题目 |
-| 面试 | interview_session | 面试会话 |
-| 面试 | interview_record | 面试记录（每题） |
-| 面试 | voice_record | 语音记录 |
-| 错题 | wrong_question | 错题（含 SM-2 字段） |
-| 复习 | review_log | 复习记录 |
-| 计划 | study_plan | 学习计划 |
-| 计划 | study_plan_task | 计划任务 |
-| 简历 | resume_file | 简历文件 |
-| 简历 | resume_project | 简历项目 |
-| 投递 | job_application | 岗位投递主记录 |
-| 投递 | job_application_event | 投递事件流 |
-| AI 治理 | ai_call_log | AI 调用日志 |
-| AI 治理 | system_config | 系统配置与提示词覆盖 |
-| 问答 | chat_session | 聊天会话 |
-| 问答 | chat_message | 聊天消息 |
-| 知识 | knowledge_doc | 知识文档 |
-| 知识 | knowledge_chunk | 知识分片 |
-| 社区 | community_question | 社区问题 |
-| 社区 | community_answer | 社区回答 |
-| 社区 | community_vote | 社区投票 |
-| 统计 | user_stats | 用户统计 |
-| 通知 | notification | 通知 |
+| 用户 | `user` | 用户账号与安全字段 |
+| 认证 | `login_device` | 登录设备 |
+| 认证 | `login_log` | 登录日志 |
+| 分类 | `category` | 题库/知识库分类 |
+| 问答 | `chat_session` | 问答会话 |
+| 问答 | `chat_message` | 问答消息 |
+| 知识库 | `knowledge_doc` | 文档元信息 |
+| 知识库 | `knowledge_chunk` | 文档切片 |
+| 卡片强化 | `knowledge_card_task` | 卡片任务 |
+| 卡片强化 | `knowledge_card` | 卡片内容 |
+| 卡片强化 | `knowledge_card_log` | 卡片学习日志 |
+| 卡片强化 | `daily_card_task` | 每日卡片任务 |
+| 卡片强化 | `daily_memory_snapshot` | 记忆快照 |
+| 题库 | `question` | 结构化题目 |
+| 面试 | `interview_session` | 面试会话 |
+| 面试 | `interview_record` | 每题记录 |
+| 面试 | `voice_record` | 语音记录 |
+| 错题 | `wrong_question` | 错题与掌握状态 |
+| 复习 | `review_log` | 复习评分日志 |
+| 学习计划 | `study_plan` | 计划主表 |
+| 学习计划 | `study_plan_task` | 每日任务 |
+| 简历 | `resume_file` | 简历文件与解析结果 |
+| 简历 | `resume_project` | 简历拆分出的项目 |
+| 投递 | `job_application` | 岗位投递主表 |
+| 投递 | `job_application_event` | 投递事件流 |
+| AI 治理 | `ai_call_log` | AI 调用日志 |
+| AI 治理 | `system_config` | 系统配置与提示词覆盖 |
+| 社区 | `community_question` | 社区问题 |
+| 社区 | `community_answer` | 社区回答 |
+| 社区 | `community_vote` | 社区投票 |
+| 统计 | `user_stats` | 用户统计 |
+| 通知 | `notification` | 通知 |
 
----
+## 核心业务模型
 
-## 核心表结构
+### 用户与认证
 
-### user（用户表）
+#### `user`
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT PK | 雪花 ID |
-| username | VARCHAR(64) UNIQUE | 用户名 |
-| password | VARCHAR(255) | BCrypt 加密密码 |
-| nickname | VARCHAR(64) | 昵称 |
-| avatar | VARCHAR(255) | 头像 URL |
-| email | VARCHAR(128) | 邮箱 |
-| role | VARCHAR(32) | 角色：USER / ADMIN |
-| status | TINYINT | 状态：1=正常, 0=封禁 |
-| totp_secret | VARCHAR(64) | TOTP 密钥（AES 加密） |
-| totp_enabled | TINYINT(1) | 是否启用两步验证 |
-| recovery_codes | TEXT | 恢复码 JSON（AES 加密） |
-| last_login_time | DATETIME | 最后登录时间 |
+- 主键：`id`
+- 核心字段：`username`、`password`、`nickname`、`avatar`、`email`
+- 权限字段：`role`、`status`
+- 安全字段：`totp_secret`、`totp_enabled`、`recovery_codes`
+- 行为字段：`last_login_time`
 
-### question（题目表）
+#### `login_device`
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT PK | 雪花 ID |
-| title | VARCHAR(255) | 题目标题 |
-| category_id | BIGINT | 分类 ID |
-| difficulty | VARCHAR(32) | 难度：easy / medium / hard |
-| tags | VARCHAR(255) | 标签（逗号分隔） |
-| standard_answer | TEXT | 标准答案 |
-| score_standard | TEXT | 评分标准 |
+- 用于记录设备 ID、设备名称、IP、最后活跃时间、是否当前设备
+- 配合 JWT、设备撤销和登录审计使用
 
-### wrong_question（错题表）
+#### `login_log`
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT PK | 雪花 ID |
-| user_id | BIGINT | 用户 ID |
-| question_id | BIGINT | 题目 ID |
-| source_type | VARCHAR(32) | 来源：interview / chat |
-| mastery_level | VARCHAR(32) | 掌握程度：not_started / reviewing / mastered |
-| ease_factor | DECIMAL(4,2) | SM-2 EF 值（初始 2.50，最低 1.30） |
-| interval_days | INT | 当前复习间隔（天） |
-| next_review_date | DATE | 下次复习日期 |
-| streak | INT | 连续成功次数 |
+- 记录登录时间、设备、IP、城市、是否成功、失败原因等
+- 同时服务个人登录历史和管理员全局日志页面
 
-UNIQUE KEY (user_id, question_id) — 每个用户每道题只有一条错题记录。
+### 题库、错题与复习
 
-### review_log（复习记录表）
+#### `question`
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT PK | 雪花 ID |
-| user_id | BIGINT | 用户 ID |
-| wrong_question_id | BIGINT | 错题 ID |
-| rating | INT | 评分 1-4（1=重来 2=困难 3=良好 4=简单） |
-| response_time_ms | INT | 复习耗时（毫秒） |
-| ease_factor_before | DECIMAL(4,2) | 复习前 EF |
-| interval_before | INT | 复习前间隔 |
-| ease_factor_after | DECIMAL(4,2) | 复习后 EF |
-| interval_after | INT | 复习后间隔 |
+| 字段 | 说明 |
+|------|------|
+| `title` | 题目标题 |
+| `category_id` | 分类 |
+| `type` | 题型 |
+| `difficulty` | 难度 |
+| `frequency` | 高频程度 |
+| `job_direction` | 适用岗位方向 |
+| `applicable_scope` | 适用范围 |
+| `tags` | 标签字符串 |
+| `standard_answer` | 标准答案 |
+| `interview_answer` | 面试版答案 |
+| `follow_up_suggestions` | 追问建议 |
+| `common_mistakes` | 常见错误 |
+| `score_standard` | 评分标准 |
 
-### study_plan（学习计划表）
+#### `wrong_question`
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT PK | 雪花 ID |
-| user_id | BIGINT | 用户 ID |
-| title | VARCHAR(128) | 计划标题 |
-| duration_days | INT | 计划周期：7 / 14 / 30 |
-| focus_direction | VARCHAR(64) | 重点方向 |
-| target_role | VARCHAR(128) | 目标岗位 |
-| tech_stack | VARCHAR(255) | 技术范围 |
-| weak_points | VARCHAR(255) | 弱项标签（逗号分隔） |
-| review_suggestion | VARCHAR(500) | 复盘建议 |
-| status | VARCHAR(32) | 状态：active / completed / archived |
-| start_date | DATE | 开始日期 |
-| end_date | DATE | 结束日期 |
-| current_day | INT | 当前执行天数 |
-| progress_rate | DECIMAL(5,2) | 完成进度百分比 |
+- 关联用户和题目
+- 包含 `mastery_level`、`ease_factor`、`interval_days`、`next_review_date`
+- 同一用户同一题目唯一
+- 作为复习与错题导出的主数据源
 
-### study_plan_task（学习计划任务表）
+#### `review_log`
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT PK | 雪花 ID |
-| plan_id | BIGINT | 所属计划 ID |
-| user_id | BIGINT | 用户 ID |
-| day_index | INT | 第几天任务 |
-| task_date | DATE | 任务日期 |
-| module | VARCHAR(32) | 模块：question / chat / review / interview |
-| title | VARCHAR(128) | 任务标题 |
-| description | VARCHAR(500) | 任务说明 |
-| action_path | VARCHAR(128) | 前端跳转路径 |
-| estimated_minutes | INT | 预估时长 |
-| priority | VARCHAR(16) | 优先级：high / medium / low |
-| status | VARCHAR(32) | 状态：pending / completed |
-| completed_at | DATETIME | 完成时间 |
+- 记录每次复习评分、响应时间、复习前后间隔和 EF 变化
+- 支撑复习统计与趋势分析
 
-### resume_file（简历文件表）
+### 知识库与问答
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT PK | 雪花 ID |
-| user_id | BIGINT | 用户 ID |
-| title | VARCHAR(128) | 简历标题 |
-| file_url | VARCHAR(255) | 存储地址 |
-| file_type | VARCHAR(16) | 文件类型：pdf / doc / docx |
-| parse_status | VARCHAR(32) | 解析状态：pending / parsed / failed |
-| raw_text | LONGTEXT | 提取后的全文 |
-| summary | VARCHAR(500) | 解析摘要 |
-| skills | VARCHAR(255) | 技能标签（逗号分隔） |
-| education | VARCHAR(500) | 教育背景摘要 |
-| self_intro | TEXT | 推荐自我介绍 |
-| interview_resume_text | TEXT | 面试版简历提纲 |
+#### `knowledge_doc`
 
-### resume_project（简历项目表）
+- 文档归属：系统资料或用户资料
+- 关键字段：`library_scope`、`business_type`、`file_type`、`status`
+- 处理状态：`parse_status`、`index_status`
+- 存储信息：`file_url`、`summary`、`content_text`
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT PK | 雪花 ID |
-| resume_file_id | BIGINT | 所属简历 ID |
-| user_id | BIGINT | 用户 ID |
-| project_name | VARCHAR(128) | 项目名称 |
-| role_name | VARCHAR(128) | 角色 / 岗位描述 |
-| tech_stack | VARCHAR(255) | 项目技术栈 |
-| responsibility | TEXT | 主要职责 |
-| achievement | TEXT | 结果与成果 |
-| project_summary | VARCHAR(500) | 项目摘要 |
-| follow_up_questions_json | JSON | 项目追问列表 |
-| risk_hints | VARCHAR(500) | 风险提示（逗号分隔） |
+#### `knowledge_chunk`
 
-### job_application（岗位投递表）
+- 关联 `knowledge_doc`
+- 保存切片内容、顺序、向量索引键、检索分数等
+- 作为 RAG 检索命中片段的结构化来源
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT PK | 雪花 ID |
-| user_id | BIGINT | 用户 ID |
-| resume_file_id | BIGINT | 绑定简历 ID |
-| company | VARCHAR(128) | 公司名称 |
-| job_title | VARCHAR(128) | 岗位名称 |
-| city | VARCHAR(64) | 城市 |
-| source | VARCHAR(64) | 渠道来源 |
-| jd_text | TEXT | JD 原文 |
-| status | VARCHAR(32) | 状态：saved / applied / written / interview / offer / rejected |
-| match_score | DECIMAL(5,2) | 简历与 JD 匹配度 |
-| jd_keywords | VARCHAR(500) | 识别出的 JD 关键词（逗号分隔） |
-| missing_keywords | VARCHAR(500) | 待补关键词（逗号分隔） |
-| analysis_summary | VARCHAR(1000) | JD 分析摘要 |
-| apply_date | DATE | 实际投递日期 |
-| next_step_date | DATE | 下一节点日期 |
+#### `chat_session` / `chat_message`
 
-### job_application_event（投递事件表）
+- 维护问答会话和消息流
+- 区分用户消息、AI 消息和引用信息
+- 支撑普通问答与 RAG 问答的历史回看
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT PK | 雪花 ID |
-| application_id | BIGINT | 所属投递 ID |
-| user_id | BIGINT | 用户 ID |
-| event_type | VARCHAR(32) | 事件类型：status_change / interview / review / note / analysis |
-| title | VARCHAR(255) | 事件标题 |
-| content | TEXT | 事件内容 |
-| event_time | DATETIME | 事件发生时间 |
-| result | VARCHAR(255) | 结果摘要 |
+### 模拟面试
 
-### ai_call_log（AI 调用日志表）
+#### `interview_session`
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT PK | 雪花 ID |
-| user_id | BIGINT | 触发用户 ID |
-| provider | VARCHAR(64) | 模型服务商 / 网关标识 |
-| model | VARCHAR(128) | 模型名称 |
-| call_type | VARCHAR(32) | 调用类型：chat / stream / embedding |
-| scene | VARCHAR(128) | 业务场景，例如 `chat.answer.rag` |
-| input_tokens | INT | 估算输入 token |
-| output_tokens | INT | 估算输出 token |
-| latency_ms | BIGINT | 调用耗时（毫秒） |
-| success | TINYINT | 是否成功：1 / 0 |
-| error_message | VARCHAR(1000) | 失败原因摘要 |
+| 字段 | 说明 |
+|------|------|
+| `user_id` | 所属用户 |
+| `mode` | `text` / `voice` |
+| `direction` | 岗位方向 |
+| `question_count` | 题量 |
+| `status` | 会话状态 |
+| `score` | 总分 |
+| `summary` | 总结摘要 |
 
-### system_config（系统配置表）
+#### `interview_record`
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT PK | 雪花 ID |
-| config_group | VARCHAR(64) | 配置分组：llm / embedding / prompt |
-| config_key | VARCHAR(128) UNIQUE | 配置键 |
-| config_value | TEXT | 配置值 |
-| value_type | VARCHAR(32) | 值类型：text / number / boolean / textarea |
-| description | VARCHAR(500) | 配置说明 |
-| enabled | TINYINT | 是否启用：1 / 0 |
+- 按题保存题目、用户答案、AI 评分、点评、追问、标准答案
+- 支撑详情页、趋势分析和面试治理列表
 
-### login_device（登录设备表）
+#### `voice_record`
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT PK | 雪花 ID |
-| user_id | BIGINT | 用户 ID |
-| device_fingerprint | VARCHAR(128) | 浏览器/设备指纹 |
-| device_name | VARCHAR(128) | 设备名（如 Chrome on Windows） |
-| ip | VARCHAR(64) | IP 地址 |
-| city | VARCHAR(64) | IP 归属城市 |
-| status | TINYINT | 1=活跃, 0=已撤销 |
+- 记录语音文件地址、转写结果和处理状态
+- 供语音面试链路回放和审计
 
-### login_log（登录日志表）
+### 学习计划
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT PK | 雪花 ID |
-| user_id | BIGINT | 用户 ID |
-| ip | VARCHAR(64) | IP 地址 |
-| city | VARCHAR(64) | IP 归属城市 |
-| device | VARCHAR(128) | 设备名称 |
-| status | TINYINT | 1=成功, 0=失败 |
-| fail_reason | VARCHAR(128) | 失败原因 |
+#### `study_plan`
 
-### community_question / community_answer（社区表）
+| 字段 | 说明 |
+|------|------|
+| `title` | 计划标题 |
+| `duration_days` | 周期，当前支持 7 / 14 / 30 |
+| `focus_direction` | 重点方向 |
+| `target_role` | 目标岗位 |
+| `tech_stack` | 技术范围 |
+| `weak_points` | 弱项标签 |
+| `review_suggestion` | 复盘建议摘要 |
+| `status` | `active / completed / archived` |
+| `current_day` | 当前执行天数 |
+| `progress_rate` | 进度百分比 |
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| status | VARCHAR(32) | 问题/回答状态：pending / approved / rejected |
+#### `study_plan_task`
 
-发布后默认 `pending`，管理员审核通过后变为 `approved` 才对外可见。
+- 按天拆分任务
+- 关键字段：`day_index`、`task_date`、`module`、`action_path`、`estimated_minutes`、`priority`、`status`
+- 当前模块值主要覆盖 `question / chat / review / interview`
 
----
+### 简历助手
 
-## 索引策略
+#### `resume_file`
 
-### 常用查询索引
+| 字段 | 说明 |
+|------|------|
+| `title` | 简历标题 |
+| `file_url` | 文件存储地址 |
+| `file_type` | `pdf / doc / docx` |
+| `parse_status` | `pending / parsed / failed` |
+| `raw_text` | 提取全文 |
+| `summary` | 简历摘要 |
+| `skills` | 技术栈标签 |
+| `education` | 教育信息摘要 |
+| `self_intro` | 推荐自我介绍 |
+| `interview_resume_text` | 面试简历提纲 |
 
-- `wrong_question(user_id, next_review_date)` — 每日复习查询
-- `notification(user_id, is_read)` — 未读通知查询
-- `notification(user_id, create_time DESC)` — 通知列表排序
-- `login_log(user_id)` + `login_log(create_time)` — 登录日志查询
-- `community_question(status)` — 审核队列查询
+#### `resume_project`
 
-### 唯一约束
+- 关联 `resume_file`
+- 拆分项目名称、角色、技术栈、职责、成果、摘要
+- `follow_up_questions_json` 保存项目追问数组
+- `risk_hints` 保存项目风险提示
 
-- `user(username)` — 用户名唯一
-- `wrong_question(user_id, question_id)` — 每用户每题唯一错题
-- `community_vote(user_id, target_type, target_id)` — 每用户对每个目标只能投票一次
+### 投递管理
 
----
+#### `job_application`
 
-## Redis 使用
+| 字段 | 说明 |
+|------|------|
+| `resume_file_id` | 绑定的简历 |
+| `company` | 公司 |
+| `job_title` | 岗位名称 |
+| `city` | 城市 |
+| `source` | 渠道 |
+| `jd_text` | JD 原文 |
+| `status` | `saved / applied / written / interview / offer / rejected` |
+| `match_score` | JD 匹配度 |
+| `jd_keywords` | 识别出的关键词 |
+| `missing_keywords` | 待补关键词 |
+| `analysis_summary` | JD 分析摘要 |
+| `apply_date` | 投递日期 |
+| `next_step_date` | 下一节点日期 |
 
-| Key 模式 | 用途 | TTL |
-|----------|------|-----|
-| `jwt:blacklist:{token}` | 登出 Token 黑名单 | Token 剩余有效期 |
-| `device:token:{userId}:{fingerprint}` | 设备撤销黑名单 | 7 天 |
-| `login:lock:{userId}` | 登录锁定 | 30 分钟 |
-| `login:fail:{userId}` | 连续失败计数 | 5 分钟 |
-| `captcha:{key}` | 图形验证码 | 5 分钟 |
-| `2fa:setup:{userId}` | 2FA 设置临时密钥 | 10 分钟 |
-| `2fa:temp:{token}` | 2FA 登录临时 Token | 5 分钟 |
-| `offerpilot_chunks:{vectorId}` | 知识库向量 | 持久 |
-| `{各种}:cache:*` | 业务缓存 | 按配置 |
+#### `job_application_event`
 
----
+- 关联 `job_application`
+- 事件类型：`status_change / interview / review / note / analysis`
+- 保存标题、内容、事件时间和结果摘要
+- 用于详情页时间线和状态流转留痕
 
-## SM-2 算法说明
+### AI 治理
 
-错题表中的 SM-2 字段用于间隔复习调度：
+#### `ai_call_log`
 
-- **ease_factor (EF)**：难度系数，初始 2.50，最低 1.30。复习评分越高，EF 越大，间隔增长越快。
-- **interval_days**：当前复习间隔（天）。首次复习后为 1 天，之后按公式增长。
-- **next_review_date**：下次复习日期 = 上次复习日期 + interval_days。
-- **streak**：连续成功次数（rating >= 3）。rating < 3 时归零。
+| 字段 | 说明 |
+|------|------|
+| `provider` | 网关或服务商标识 |
+| `model` | 模型名 |
+| `call_type` | `chat / stream / embedding` |
+| `scene` | 业务场景 |
+| `input_tokens` | 输入 token 估算值 |
+| `output_tokens` | 输出 token 估算值 |
+| `latency_ms` | 调用耗时 |
+| `success` | 是否成功 |
+| `error_message` | 错误摘要 |
 
-计算公式：
-- 首次：interval = 1
-- 第二次：interval = 6
-- 之后：interval = interval × EF
-- EF 调整：EF = EF + (0.1 - (4-rating) × (0.08 + (4-rating) × 0.02))
+#### `system_config`
+
+- 配置分组：`llm / embedding / prompt`
+- 保存可在线覆盖的运行配置和提示词模板
+- 包含 `config_key`、`config_value`、`value_type`、`description`、`enabled`
+
+## 关系说明
+
+### 主线关系
+
+```text
+question -> wrong_question -> review_log
+knowledge_doc -> knowledge_chunk -> chat_message
+interview_session -> interview_record -> wrong_question / knowledge_card
+study_plan -> study_plan_task
+resume_file -> resume_project -> job_application -> job_application_event
+ai_call_log / system_config -> admin governance
+```
+
+### 归属关系
+
+- 大部分业务表都以 `user_id` 作为数据归属边界
+- 管理后台接口在读取这些表时会额外按管理员权限保护
+- 简历、投递、问答和面试数据互相可形成训练闭环，但当前仍保持各域独立存储
+
+## 设计原则
+
+- 结构化训练内容和非结构化知识语料分开建模
+- 面试、简历、投递分别使用独立主表，避免把求职链路挤进单一训练模型
+- AI 治理信息单独落表，避免和业务主表强耦合
+- 当前文档只描述已经存在的表和字段，不扩展未来规划字段
